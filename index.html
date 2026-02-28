@@ -7,44 +7,40 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root { --main-blue: #005a9c; --bg-color: #f0f4f8; --vvip-gold: #ffd700; --vvip-pink: #d63384; }
-        body { background-color: var(--bg-color); padding: 15px; font-family: "Microsoft JhengHei", sans-serif; font-size: 16px; position: relative; }
+        body { background-color: var(--bg-color); padding: 15px; font-family: "Microsoft JhengHei", sans-serif; font-size: 16px; overflow-x: hidden; }
         
         .order-card { 
             background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
             padding: 25px; max-width: 500px; margin: auto; border-top: 10px solid var(--main-blue); 
-            transition: all 0.5s ease; position: relative; z-index: 10;
+            position: relative; z-index: 10;
         }
 
-        /* ⚡ 閃電特效優化：預設不顯示，避免擋住點擊 ⚡ */
+        /* ⚡ 閃電特效優化：平常完全消失，不擋點擊 ⚡ */
         #flash-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: white; opacity: 0; pointer-events: none; z-index: 9999;
-            display: none; /* 預設關閉 */
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: white; visibility: hidden; pointer-events: none; z-index: 9999;
         }
 
         .lightning-effect {
-            display: block !important;
-            animation: lightning-strike 0.4s ease-out;
+            visibility: visible !important;
+            animation: lightning-strike 0.4s ease-out forwards;
         }
 
         @keyframes lightning-strike {
             0% { opacity: 0; }
             10% { opacity: 0.8; background-color: #fffce0; }
-            20% { opacity: 0.2; }
+            20% { opacity: 0.1; }
             30% { opacity: 0.9; background-color: white; }
-            100% { opacity: 0; }
+            100% { opacity: 0; visibility: hidden; }
         }
 
-        /* 按鈕樣式優化 */
         .btn-random { background-color: #e7f1ff; border: 1px dashed var(--main-blue); color: var(--main-blue); width: 100%; border-radius: 12px; font-weight: bold; padding: 10px; margin-top: 10px; transition: 0.3s; }
         .btn-random:hover { background-color: var(--main-blue); color: white; border-style: solid; }
-        .btn-submit { background-color: var(--main-blue); color: white; width: 100%; border-radius: 30px; padding: 12px; font-weight: bold; border: none; margin-top: 25px; }
+        .btn-submit { background-color: var(--main-blue); color: white; width: 100%; border-radius: 30px; padding: 12px; font-weight: bold; border: none; margin-top: 25px; cursor: pointer; }
         .btn-cancel { background-color: transparent; color: #666; width: 100%; border-radius: 30px; padding: 8px; font-size: 0.9rem; border: 1px solid #ccc; margin-top: 12px; }
 
         .price-tag { color: var(--main-blue); font-weight: 900; font-size: 1.5rem; }
         .promo-badge { background-color: #fff9db; border: 1px dashed #fab005; padding: 10px; border-radius: 10px; font-size: 0.85rem; color: #856404; margin-bottom: 20px; text-align: center; }
-        .vvip-text { color: var(--vvip-pink); font-weight: 900; animation: heartBeat 1.5s infinite; display: inline-block; }
-        @keyframes heartBeat { 0% {transform: scale(1);} 50% {transform: scale(1.05);} 100% {transform: scale(1);} }
         .form-label { font-weight: bold; color: #444; margin-top: 10px; display: block; }
         .form-select, .form-control { border-radius: 10px; padding: 10px; }
     </style>
@@ -54,7 +50,10 @@
 <div id="flash-overlay"></div>
 
 <div class="container">
-    <div id="loading" class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2 text-secondary">正在連線至伺服器...</p></div>
+    <div id="loading" class="text-center py-5">
+        <div class="spinner-border text-primary"></div>
+        <p class="mt-2 text-secondary">正在連線至伺服器...</p>
+    </div>
 
     <div id="formSection" class="order-card" style="display:none;">
         <h3 class="text-center mb-1" id="resTitle" style="color: var(--main-blue); font-weight: 900;">今日店家</h3>
@@ -71,7 +70,7 @@
             <div class="mb-4">
                 <label class="form-label">選擇飲品</label>
                 <select id="menuSelect" class="form-select" required></select>
-                <button class="btn btn-random" type="button" id="randomBtn">🎲 今天想被雷 (隨機組合)</button>
+                <button class="btn btn-random" type="button" id="randomBtn">🎲 今天想被雷 (命運選單)</button>
             </div>
 
             <div class="row g-2">
@@ -90,11 +89,13 @@
             <div class="mb-3"><label class="form-label">備註</label><input type="text" id="note" class="form-control" placeholder="備註..."></div>
 
             <div class="mb-3 form-check">
-                <input type="checkbox" class="form-check-input" id="paidCheck"><label class="form-check-label fw-bold" for="paidCheck" id="paidLabel" style="color: var(--main-blue);"> 我已現場繳費 </label>
+                <input type="checkbox" class="form-check-input" id="paidCheck">
+                <label class="form-check-label fw-bold" for="paidCheck" id="paidLabel" style="color: var(--main-blue);"> 我已現場繳費 </label>
             </div>
 
             <div id="paymentSection">
-                <label class="form-label small">收取金額</label><input type="number" id="receivedAmt" class="form-control mb-2" placeholder="面額">
+                <label class="form-label small">收取金額</label>
+                <input type="number" id="receivedAmt" class="form-control mb-2" placeholder="面額">
                 <div class="fw-bold text-end">找零：<span id="changeAmt" class="text-danger">$0</span></div>
             </div>
 
@@ -102,11 +103,6 @@
             <button type="button" id="deleteBtn" class="btn btn-cancel">🔙 撤回我的最後一筆訂單</button>
         </form>
         <div id="msg" class="text-center mt-3 fw-bold"></div>
-    </div>
-
-    <div id="closedSection" class="order-card text-center py-5" style="display:none;">
-        <h2 style="color: var(--main-blue); font-weight: bold;">🛑 休息中</h2>
-        <p class="text-secondary mt-3">目前非點餐時間，請洽 Dimlos！🥤</p>
     </div>
 </div>
 
@@ -117,18 +113,21 @@
     window.onload = () => {
         fetch(GAS_URL).then(res => res.json()).then(data => {
             document.getElementById('loading').style.display = 'none';
-            if (data.status !== "開啟") { document.getElementById('closedSection').style.display = 'block'; return; }
             document.getElementById('formSection').style.display = 'block';
-            document.getElementById('resTitle').innerText = "今日店家：" + (data.restaurant || "點餐伺服器");
+            document.getElementById('resTitle').innerText = "今日店家：" + (data.restaurant || "點餐系統");
             menuStore = data.menu; extraStore = data.extras; vvipList = data.vvip;
             const menuSel = document.getElementById('menuSelect');
             menuSel.add(new Option("-- 請選擇飲品 --", ""));
             data.menu.forEach(row => { if(row[0]) menuSel.add(new Option(`${row[0]} ($${row[1]})`, row[0])); });
             const extraSel = document.getElementById('extraSelect');
             data.extras.forEach(row => { let opt = new Option(`${row[0]} (+$${row[1]})`, row[0]); opt.dataset.price = row[1]; extraSel.add(opt); });
+        }).catch(err => {
+            alert("伺服器連線異常，請重新整理頁面。");
+            console.error(err);
         });
     };
 
+    // ⚡ 隨機鈕優化邏輯
     document.getElementById('randomBtn').onclick = function() {
         if (menuStore.length === 0) return;
         const overlay = document.getElementById('flash-overlay');
@@ -142,21 +141,6 @@
         document.getElementById('sugarSelect').selectedIndex = Math.floor(Math.random() * 6);
         updateUI();
     };
-
-    document.getElementById('userName').addEventListener('input', function() {
-        const isVVIP = vvipList.includes(this.value.trim());
-        const card = document.getElementById('formSection');
-        const check = document.getElementById('paidCheck');
-        const label = document.getElementById('paidLabel');
-        if (isVVIP) {
-            label.innerHTML = "✨ <span class='vvip-text'>恭喜解鎖『白嫖模式』</span>";
-            check.checked = true; check.disabled = true; card.classList.add('vvip-active');
-            document.getElementById('paymentSection').style.display = 'none';
-        } else {
-            label.innerHTML = "我已現場繳費"; check.disabled = false; card.classList.remove('vvip-active');
-            updateUI();
-        }
-    });
 
     function updateUI() {
         const selectedItem = menuStore.find(r => r[0] === document.getElementById('menuSelect').value);
@@ -190,11 +174,12 @@
         };
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
         .then(res => res.json()).then(res => {
-            document.getElementById('msg').innerText = res.result;
+            alert(res.result);
             this.reset(); btn.disabled = false; btn.innerText = "確認送出訂單";
-            document.getElementById('formSection').classList.remove('vvip-active');
             document.getElementById('priceDisplay').innerText = "";
-            setTimeout(() => { document.getElementById('msg').innerText = ""; }, 5000);
+        }).catch(err => {
+            alert("提交失敗，請檢查網路連線。");
+            btn.disabled = false;
         });
     };
 
