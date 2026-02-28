@@ -15,14 +15,15 @@
             transition: all 0.5s ease; position: relative; z-index: 10;
         }
 
-        /* ⚡ 閃電特效疊層 ⚡ */
+        /* ⚡ 閃電特效優化：預設不顯示，避免擋住點擊 ⚡ */
         #flash-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: white; opacity: 0; pointer-events: none; z-index: 9999;
+            display: none; /* 預設關閉 */
         }
 
-        /* 閃電動畫：快速兩次閃擊 */
         .lightning-effect {
+            display: block !important;
             animation: lightning-strike 0.4s ease-out;
         }
 
@@ -34,24 +35,18 @@
             100% { opacity: 0; }
         }
 
-        /* VVIP 動畫 */
-        @keyframes goldGlow { 
-            0% { border-color: var(--main-blue); } 
-            50% { border-color: var(--vvip-gold); box-shadow: 0 0 25px var(--vvip-gold); border-top-width: 20px; } 
-            100% { border-color: var(--main-blue); } 
-        }
-        .vvip-active { animation: goldGlow 2s infinite ease-in-out; }
-
-        .btn-random { background-color: #e7f1ff; border: 1px dashed var(--main-blue); color: var(--main-blue); width: 100%; border-radius: 12px; font-weight: bold; padding: 8px; margin-top: 10px; transition: 0.3s; font-size: 0.95rem; }
+        /* 按鈕樣式優化 */
+        .btn-random { background-color: #e7f1ff; border: 1px dashed var(--main-blue); color: var(--main-blue); width: 100%; border-radius: 12px; font-weight: bold; padding: 10px; margin-top: 10px; transition: 0.3s; }
         .btn-random:hover { background-color: var(--main-blue); color: white; border-style: solid; }
-        .btn-submit { background-color: var(--main-blue); color: white; width: 100%; border-radius: 30px; padding: 12px; font-weight: bold; border: none; margin-top: 25px; transition: 0.3s; }
+        .btn-submit { background-color: var(--main-blue); color: white; width: 100%; border-radius: 30px; padding: 12px; font-weight: bold; border: none; margin-top: 25px; }
         .btn-cancel { background-color: transparent; color: #666; width: 100%; border-radius: 30px; padding: 8px; font-size: 0.9rem; border: 1px solid #ccc; margin-top: 12px; }
-        #paymentSection { background-color: #f0f7ff; border-left: 5px solid var(--main-blue); padding: 15px; border-radius: 8px; display: none; margin-top: 15px; }
+
         .price-tag { color: var(--main-blue); font-weight: 900; font-size: 1.5rem; }
         .promo-badge { background-color: #fff9db; border: 1px dashed #fab005; padding: 10px; border-radius: 10px; font-size: 0.85rem; color: #856404; margin-bottom: 20px; text-align: center; }
         .vvip-text { color: var(--vvip-pink); font-weight: 900; animation: heartBeat 1.5s infinite; display: inline-block; }
         @keyframes heartBeat { 0% {transform: scale(1);} 50% {transform: scale(1.05);} 100% {transform: scale(1);} }
         .form-label { font-weight: bold; color: #444; margin-top: 10px; display: block; }
+        .form-select, .form-control { border-radius: 10px; padding: 10px; }
     </style>
 </head>
 <body>
@@ -59,10 +54,7 @@
 <div id="flash-overlay"></div>
 
 <div class="container">
-    <div id="loading" class="text-center py-5">
-        <div class="spinner-border text-primary"></div>
-        <p class="mt-2 text-secondary">正在連線至點餐伺服器...</p>
-    </div>
+    <div id="loading" class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2 text-secondary">正在連線至伺服器...</p></div>
 
     <div id="formSection" class="order-card" style="display:none;">
         <h3 class="text-center mb-1" id="resTitle" style="color: var(--main-blue); font-weight: 900;">今日店家</h3>
@@ -79,7 +71,7 @@
             <div class="mb-4">
                 <label class="form-label">選擇飲品</label>
                 <select id="menuSelect" class="form-select" required></select>
-                <button class="btn btn-random" type="button" id="randomBtn">🎲 今天想被雷 (命運選單)</button>
+                <button class="btn btn-random" type="button" id="randomBtn">🎲 今天想被雷 (隨機組合)</button>
             </div>
 
             <div class="row g-2">
@@ -102,7 +94,7 @@
             </div>
 
             <div id="paymentSection">
-                <label class="form-label small">收取金額</label><input type="number" id="receivedAmt" class="form-control mb-2" placeholder="請輸入面額">
+                <label class="form-label small">收取金額</label><input type="number" id="receivedAmt" class="form-control mb-2" placeholder="面額">
                 <div class="fw-bold text-end">找零：<span id="changeAmt" class="text-danger">$0</span></div>
             </div>
 
@@ -137,38 +129,27 @@
         });
     };
 
-    // --- ⚡ 驚喜隨機鈕 (含閃電效果) ⚡ ---
     document.getElementById('randomBtn').onclick = function() {
         if (menuStore.length === 0) return;
-
-        // 1. 觸發閃電視覺
         const overlay = document.getElementById('flash-overlay');
         overlay.classList.add('lightning-effect');
         setTimeout(() => overlay.classList.remove('lightning-effect'), 400);
-
-        // 2. 觸發震動 (僅手機端支援)
         if (navigator.vibrate) navigator.vibrate([50, 30, 100]);
 
-        // 3. 隨機邏輯
         const randMenu = Math.floor(Math.random() * menuStore.length);
         document.getElementById('menuSelect').value = menuStore[randMenu][0];
         document.getElementById('iceSelect').selectedIndex = Math.floor(Math.random() * 7);
         document.getElementById('sugarSelect').selectedIndex = Math.floor(Math.random() * 6);
         updateUI();
-
-        const msg = document.getElementById('msg');
-        msg.className = "text-center mt-3 fw-bold text-primary";
-        msg.innerText = "⚡ 轟隆！命運之雷已擊中選單... ⚡";
-        setTimeout(() => { if(msg.innerText.includes("命運")) msg.innerText = ""; }, 3000);
     };
 
     document.getElementById('userName').addEventListener('input', function() {
-        const label = document.getElementById('paidLabel');
-        const check = document.getElementById('paidCheck');
-        const card = document.getElementById('formSection');
         const isVVIP = vvipList.includes(this.value.trim());
+        const card = document.getElementById('formSection');
+        const check = document.getElementById('paidCheck');
+        const label = document.getElementById('paidLabel');
         if (isVVIP) {
-            label.innerHTML = "✨ <span class='vvip-text'>恭喜解鎖『白嫖模式』，僅限本日 VVIP 專用。</span>";
+            label.innerHTML = "✨ <span class='vvip-text'>恭喜解鎖『白嫖模式』</span>";
             check.checked = true; check.disabled = true; card.classList.add('vvip-active');
             document.getElementById('paymentSection').style.display = 'none';
         } else {
@@ -183,9 +164,7 @@
         let qty = parseInt(document.getElementById('qtyInput').value) || 1;
         let extraOpt = document.getElementById('extraSelect').selectedOptions[0];
         let extraPrice = extraOpt ? parseFloat(extraOpt.dataset.price) : 0;
-        let isFree = currentBasePrice > 35 && extraPrice > 0;
-        let finalExtraPrice = isFree ? 0 : extraPrice;
-        let total = (currentBasePrice + finalExtraPrice) * qty;
+        let total = (currentBasePrice + (currentBasePrice > 35 ? 0 : extraPrice)) * qty;
         document.getElementById('priceDisplay').innerHTML = currentBasePrice > 0 ? `總計 <span class="price-tag">$${total}</span>` : "";
         let received = parseFloat(document.getElementById('receivedAmt').value) || 0;
         document.getElementById('changeAmt').innerText = `$${received - total}`;
@@ -200,7 +179,6 @@
     document.getElementById('orderForm').onsubmit = function(e) {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
-        const card = document.getElementById('formSection');
         btn.disabled = true; btn.innerText = "傳送中...";
         const payload = {
             userName: document.getElementById('userName').value,
@@ -212,13 +190,9 @@
         };
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
         .then(res => res.json()).then(res => {
-            document.getElementById('msg').className = "text-center mt-3 fw-bold text-success";
             document.getElementById('msg').innerText = res.result;
             this.reset(); btn.disabled = false; btn.innerText = "確認送出訂單";
-            card.classList.remove('vvip-active');
-            document.getElementById('paidLabel').innerHTML = "我已現場繳費";
-            document.getElementById('paidCheck').disabled = false;
-            document.getElementById('paymentSection').style.display = 'none';
+            document.getElementById('formSection').classList.remove('vvip-active');
             document.getElementById('priceDisplay').innerText = "";
             setTimeout(() => { document.getElementById('msg').innerText = ""; }, 5000);
         });
@@ -226,11 +200,10 @@
 
     document.getElementById('deleteBtn').onclick = function() {
         const name = document.getElementById('userName').value.trim();
-        if (!name) { alert("請先輸入您的姓名。"); return; }
-        if (!confirm("確定要撤回 " + name + " 的訂單？")) return;
-        const btn = this; btn.disabled = true; btn.innerText = "撤回中...";
+        if (!name) return alert("請輸入姓名");
+        if (!confirm("確定撤回？")) return;
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "delete", userName: name }) })
-        .then(res => res.json()).then(res => { alert(res.result); btn.disabled = false; btn.innerText = "🔙 撤回我的最後一筆訂單"; });
+        .then(res => res.json()).then(res => alert(res.result));
     };
 </script>
 </body>
