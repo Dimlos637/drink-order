@@ -31,8 +31,12 @@
         /* VVIP 啟動類別 */
         .vvip-active { animation: goldGlow 2s infinite ease-in-out; }
 
-        .btn-submit { background-color: var(--main-blue); color: white; width: 100%; border-radius: 30px; padding: 12px; font-weight: bold; border: none; transition: 0.3s; margin-top: 20px; }
+        /* 按鈕樣式 */
+        .btn-submit { background-color: var(--main-blue); color: white; width: 100%; border-radius: 30px; padding: 12px; font-weight: bold; border: none; transition: 0.3s; }
         .btn-submit:hover { background-color: #004477; transform: translateY(-2px); }
+        .btn-cancel { background-color: transparent; color: #666; width: 100%; border-radius: 30px; padding: 8px; font-size: 0.9rem; border: 1px solid #ccc; margin-top: 10px; transition: 0.3s; }
+        .btn-cancel:hover { background-color: #fff0f0; color: #d63384; border-color: #d63384; }
+
         #paymentSection { background-color: #f0f7ff; border-left: 5px solid var(--main-blue); padding: 15px; border-radius: 8px; display: none; margin-top: 15px; }
         .price-tag { color: var(--main-blue); font-weight: 900; font-size: 1.5rem; }
         .promo-badge { background-color: #fff9db; border: 1px dashed #fab005; padding: 10px; border-radius: 10px; font-size: 0.85rem; color: #856404; margin-bottom: 20px; text-align: center; }
@@ -112,7 +116,8 @@
                 <div class="fw-bold text-end">找零：<span id="changeAmt" class="text-danger">$0</span></div>
             </div>
 
-            <button type="submit" id="submitBtn" class="btn btn-submit">確認送出訂單</button>
+            <button type="submit" id="submitBtn" class="btn btn-submit mt-3">確認送出訂單</button>
+            <button type="button" id="deleteBtn" class="btn btn-cancel">🔙 撤回我的最後一筆訂單</button>
         </form>
         <div id="msg" class="text-center mt-3 fw-bold text-success"></div>
     </div>
@@ -124,12 +129,11 @@
 </div>
 
 <script>
-    // --- ⚠️ 重要：請替換成你的 GAS 網址 ⚠️ ---
+    // --- ⚠️ 已為您自動填入 GAS 網址 ⚠️ ---
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyGTYv98DOd9mxMm72pDQF08Eism1jyVOd2k4DK_onA1WZtqEn2wZEGJF9bUTjoWQHx/exec"; 
     
     let menuStore = [], extraStore = [], vvipList = [], currentBasePrice = 0;
 
-    // 初始化讀取資料
     window.onload = () => {
         fetch(GAS_URL).then(res => res.json()).then(data => {
             document.getElementById('loading').style.display = 'none';
@@ -165,12 +169,12 @@
             label.innerHTML = "✨ <span class='vvip-text'>恭喜解鎖『白嫖模式』，僅限本日 VVIP 專用。</span>";
             check.checked = true;
             check.disabled = true;
-            card.classList.add('vvip-active'); // 開啟金光
+            card.classList.add('vvip-active');
             document.getElementById('paymentSection').style.display = 'none';
         } else {
             label.innerHTML = "我已現場繳費";
             check.disabled = false;
-            card.classList.remove('vvip-active'); // 關閉金光
+            card.classList.remove('vvip-active');
             updateUI();
         }
     });
@@ -201,11 +205,11 @@
         document.getElementById('paymentSection').style.display = this.checked ? 'block' : 'none';
     };
 
-    // 送出表單
+    // 送出訂單
     document.getElementById('orderForm').onsubmit = function(e) {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
-        const card = document.getElementById('formSection'); // 抓取卡片
+        const card = document.getElementById('formSection');
         btn.disabled = true; btn.innerText = "傳送訂單中...";
         
         const extraOpt = document.getElementById('extraSelect').selectedOptions[0];
@@ -214,32 +218,3 @@
             userName: document.getElementById('userName').value,
             item: document.getElementById('menuSelect').value,
             ice: document.getElementById('iceSelect').value,
-            sugar: document.getElementById('sugarSelect').value,
-            extraItem: document.getElementById('extraSelect').value,
-            price: currentBasePrice,
-            extraPrice: extraOpt ? parseFloat(extraOpt.dataset.price) : 0,
-            quantity: document.getElementById('qtyInput').value,
-            note: document.getElementById('note').value,
-            hasPaid: document.getElementById('paidCheck').checked,
-            receivedAmount: document.getElementById('receivedAmt').value
-        };
-
-        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
-        .then(res => res.json()).then(res => {
-            document.getElementById('msg').innerText = res.result;
-            
-            // --- 核心重置邏輯 ---
-            this.reset(); 
-            card.classList.remove('vvip-active'); // 提交成功後立刻移除金光
-            document.getElementById('paidLabel').innerHTML = "我已現場繳費";
-            document.getElementById('paidCheck').disabled = false;
-            document.getElementById('paymentSection').style.display = 'none';
-            document.getElementById('priceDisplay').innerText = "";
-            
-            btn.disabled = false; btn.innerText = "確認送出訂單";
-            setTimeout(() => { document.getElementById('msg').innerText = ""; }, 5000);
-        });
-    };
-</script>
-</body>
-</html>
