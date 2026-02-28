@@ -28,6 +28,7 @@
             100% { border-color: var(--main-blue); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         }
 
+        /* VVIP 啟動類別 */
         .vvip-active { animation: goldGlow 2s infinite ease-in-out; }
 
         .btn-submit { background-color: var(--main-blue); color: white; width: 100%; border-radius: 30px; padding: 12px; font-weight: bold; border: none; transition: 0.3s; margin-top: 20px; }
@@ -128,6 +129,7 @@
     
     let menuStore = [], extraStore = [], vvipList = [], currentBasePrice = 0;
 
+    // 初始化讀取資料
     window.onload = () => {
         fetch(GAS_URL).then(res => res.json()).then(data => {
             document.getElementById('loading').style.display = 'none';
@@ -152,6 +154,7 @@
         });
     };
 
+    // VVIP 監聽邏輯
     document.getElementById('userName').addEventListener('input', function() {
         const label = document.getElementById('paidLabel');
         const check = document.getElementById('paidCheck');
@@ -162,12 +165,12 @@
             label.innerHTML = "✨ <span class='vvip-text'>恭喜解鎖『白嫖模式』，僅限本日 VVIP 專用。</span>";
             check.checked = true;
             check.disabled = true;
-            card.classList.add('vvip-active');
+            card.classList.add('vvip-active'); // 開啟金光
             document.getElementById('paymentSection').style.display = 'none';
         } else {
             label.innerHTML = "我已現場繳費";
             check.disabled = false;
-            card.classList.remove('vvip-active');
+            card.classList.remove('vvip-active'); // 關閉金光
             updateUI();
         }
     });
@@ -198,9 +201,11 @@
         document.getElementById('paymentSection').style.display = this.checked ? 'block' : 'none';
     };
 
+    // 送出表單
     document.getElementById('orderForm').onsubmit = function(e) {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
+        const card = document.getElementById('formSection'); // 抓取卡片
         btn.disabled = true; btn.innerText = "傳送訂單中...";
         
         const extraOpt = document.getElementById('extraSelect').selectedOptions[0];
@@ -222,13 +227,16 @@
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
         .then(res => res.json()).then(res => {
             document.getElementById('msg').innerText = res.result;
+            
+            // --- 核心重置邏輯 ---
             this.reset(); 
-            btn.disabled = false; btn.innerText = "確認送出訂單";
-            document.getElementById('paymentSection').style.display = 'none';
-            document.getElementById('formSection').classList.remove('vvip-active');
+            card.classList.remove('vvip-active'); // 提交成功後立刻移除金光
             document.getElementById('paidLabel').innerHTML = "我已現場繳費";
             document.getElementById('paidCheck').disabled = false;
+            document.getElementById('paymentSection').style.display = 'none';
             document.getElementById('priceDisplay').innerText = "";
+            
+            btn.disabled = false; btn.innerText = "確認送出訂單";
             setTimeout(() => { document.getElementById('msg').innerText = ""; }, 5000);
         });
     };
