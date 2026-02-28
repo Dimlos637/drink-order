@@ -15,34 +15,22 @@
             position: relative; z-index: 10; transition: all 0.5s ease;
         }
 
-        /* 🛑 關閉狀態樣式 */
-        .closed-badge { background-color: #fff5f5; border: 1px solid #ffc9c9; color: #c92a2a; padding: 20px; border-radius: 15px; margin-top: 20px; }
+        /* 🔴 系統關閉樣式：神祕天象風格 */
+        .closed-badge { background-color: #f8f9fa; border: 1px dashed var(--main-blue); color: #444; padding: 25px; border-radius: 15px; margin-top: 20px; }
 
-        /* ✨ VVIP 黃金閃爍動畫 ✨ */
-        @keyframes goldGlow { 
-            0% { border-top-color: var(--main-blue); } 
-            50% { border-top-color: var(--vvip-gold); box-shadow: 0 0 25px var(--vvip-gold); border-top-width: 20px; } 
-            100% { border-top-color: var(--main-blue); } 
-        }
+        /* ✨ VVIP 特效 */
+        @keyframes goldGlow { 0% { border-top-color: var(--main-blue); } 50% { border-top-color: var(--vvip-gold); box-shadow: 0 0 25px var(--vvip-gold); border-top-width: 20px; } 100% { border-top-color: var(--main-blue); } }
         .vvip-active { animation: goldGlow 2s infinite ease-in-out; }
         .vvip-text { color: var(--vvip-pink); font-weight: 900; animation: heartBeat 1.5s infinite; display: inline-block; }
         @keyframes heartBeat { 0% {transform: scale(1);} 50% {transform: scale(1.05);} 100% {transform: scale(1);} }
 
-        /* ⚡ 閃電特效 ⚡ */
-        #flash-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background-color: white; visibility: hidden; pointer-events: none; z-index: 9999;
-        }
+        /* ⚡ 閃電特效 */
+        #flash-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: white; visibility: hidden; pointer-events: none; z-index: 9999; }
         .lightning-effect { visibility: visible !important; animation: lightning-strike 0.4s ease-out forwards; }
-        @keyframes lightning-strike {
-            0% { opacity: 0; }
-            10% { opacity: 0.8; background-color: #fffce0; }
-            20% { opacity: 0.1; }
-            30% { opacity: 0.9; background-color: white; }
-            100% { opacity: 0; visibility: hidden; }
-        }
+        @keyframes lightning-strike { 0% { opacity: 0; } 10% { opacity: 0.8; background-color: #fffce0; } 20% { opacity: 0.1; } 30% { opacity: 0.9; background-color: white; } 100% { opacity: 0; visibility: hidden; } }
 
-        .btn-random { background-color: #e7f1ff !important; border: 1.5px dashed var(--main-blue) !important; color: var(--main-blue) !important; width: 100%; border-radius: 12px; font-weight: bold; padding: 10px; margin-top: 10px; }
+        .btn-random { background-color: #e7f1ff !important; border: 1.5px dashed var(--main-blue) !important; color: var(--main-blue) !important; width: 100%; border-radius: 12px; font-weight: bold; padding: 10px; margin-top: 10px; transition: 0.2s; }
+        .btn-random:hover { background-color: var(--main-blue) !important; color: white !important; border-style: solid !important; }
         .btn-submit { background-color: var(--main-blue) !important; color: white !important; width: 100%; border-radius: 30px; padding: 12px; font-weight: bold; border: none !important; margin-top: 25px; box-shadow: 0 4px 12px rgba(0, 90, 156, 0.2) !important; }
         .btn-cancel { background-color: transparent; color: #666; width: 100%; border-radius: 30px; padding: 8px; font-size: 0.9rem; border: 1px solid #ccc; margin-top: 12px; }
         .price-tag { color: var(--main-blue); font-weight: 900; font-size: 1.5rem; }
@@ -57,7 +45,7 @@
 <div class="container">
     <div id="loading" class="text-center py-5">
         <div class="spinner-border text-primary"></div>
-        <p class="mt-2 text-secondary">正在同步系統狀態...</p>
+        <p class="mt-2 text-secondary">正在連結命運之雷伺服器...</p>
     </div>
 
     <div id="formSection" class="order-card" style="display:none;">
@@ -72,18 +60,18 @@
             <div class="mb-3"><label class="form-label">數量</label><input type="number" id="qtyInput" class="form-control" value="1" min="1" required><div id="priceDisplay" class="mt-2 text-end"></div></div>
             <div class="mb-3"><label class="form-label">備註</label><input type="text" id="note" class="form-control" placeholder="備註..."></div>
             <div class="mb-3 form-check"><input type="checkbox" class="form-check-input" id="paidCheck"><label class="form-check-label fw-bold" for="paidCheck" id="paidLabel" style="color: var(--main-blue);"> 我已現場繳費 </label></div>
-            <div id="paymentSection"><label class="form-label small">收取金額</label><input type="number" id="receivedAmt" class="form-control mb-2" placeholder="面額"><div class="fw-bold text-end">找零：<span id="changeAmt" class="text-danger">$0</span></div></div>
+            <div id="paymentSection" style="display:none;"><label class="form-label small">收取金額</label><input type="number" id="receivedAmt" class="form-control mb-2" placeholder="面額"><div class="fw-bold text-end">找零：<span id="changeAmt" class="text-danger">$0</span></div></div>
             <button type="submit" id="submitBtn" class="btn btn-submit">確認送出訂單</button>
             <button type="button" id="deleteBtn" class="btn btn-cancel">🔙 撤回我的最後一筆訂單</button>
         </form>
-        <div id="msg" class="text-center mt-3 fw-bold"></div>
     </div>
 
     <div id="closedSection" class="order-card text-center py-5" style="display:none;">
-        <h2 style="color: var(--main-blue); font-weight: bold;">🛑 今日點餐已結束</h2>
+        <h2 style="color: var(--main-blue); font-weight: bold; font-size: 1.5rem;">☁️ 烏雲散去，雷鳴暫歇</h2>
         <div class="closed-badge">
-            <p class="mb-0 fw-bold">目前系統狀態：休息中</p>
-            <p class="mb-0 small">如有急單請洽詢 Dimlos！🥤</p>
+            <p class="mb-2 fw-bold" style="line-height: 1.6;">今日的命運之雷已盡數落下，<br>天道已回歸寧靜，不再接受凡間請願。</p>
+            <hr>
+            <p class="mb-0 small text-secondary">欲求天啟（點餐）請待吉日，<br>或密奏 Dimlos 另尋神蹟。🥤</p>
         </div>
     </div>
 </div>
@@ -95,14 +83,10 @@
     window.onload = () => {
         fetch(GAS_URL).then(res => res.json()).then(data => {
             document.getElementById('loading').style.display = 'none';
-            
-            // ✨ [核心修正] 檢查狀態邏輯 ✨
             if (data.status !== "開啟") {
                 document.getElementById('closedSection').style.display = 'block';
-                return; // 直接中斷，不顯示表單
+                return;
             }
-
-            // 狀態為「開啟」才顯示表單
             document.getElementById('formSection').style.display = 'block';
             document.getElementById('resTitle').innerText = "今日店家：" + (data.restaurant || "點餐系統");
             menuStore = data.menu; extraStore = data.extras; vvipList = data.vvip;
@@ -111,12 +95,9 @@
             data.menu.forEach(row => { if(row[0]) menuSel.add(new Option(`${row[0]} ($${row[1]})`, row[0])); });
             const extraSel = document.getElementById('extraSelect');
             data.extras.forEach(row => { let opt = new Option(`${row[0]} (+$${row[1]})`, row[0]); opt.dataset.price = row[1]; extraSel.add(opt); });
-        }).catch(err => {
-            document.getElementById('loading').innerHTML = "伺服器連線異常，請重新整理。";
         });
     };
 
-    // VVIP 偵測
     document.getElementById('userName').addEventListener('input', function() {
         const isVVIP = vvipList.includes(this.value.trim());
         const card = document.getElementById('formSection');
@@ -132,7 +113,6 @@
         }
     });
 
-    // ⚡ 隨機鈕
     document.getElementById('randomBtn').onclick = function() {
         if (menuStore.length === 0) return;
         const overlay = document.getElementById('flash-overlay');
