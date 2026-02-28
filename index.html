@@ -1,30 +1,45 @@
-<div class="alert alert-warning py-2 mb-3" style="font-size: 0.85rem; border-radius: 10px;">
-    <strong>🥤 50嵐小秘訣：</strong> 單價超過 $35，珍珠/波霸/燕麥等加料通通 <strong>$0 免費</strong>！
-</div>
+/* 在 HTML 的 <script> 區塊更新這幾段核心邏輯 */
 
-<div class="mb-3">
-    <label class="form-label fw-bold">加點配料</label>
-    <select id="extraSelect" class="form-select"></select>
-</div>
+let menuStore = [], extraStore = [], currentPrice = 0;
 
-<script>
-    // --- 修改後的價格計算邏輯 ---
-    function updateUI() {
-        let qty = parseInt(document.getElementById('qtyInput').value) || 1;
-        let extraPrice = parseFloat(document.getElementById('extraSelect').selectedOptions[0]?.dataset.price) || 0;
+window.onload = () => {
+    fetch(GAS_URL).then(res => res.json()).then(data => {
+        document.getElementById('loading').style.display = 'none';
+        if (data.status !== "開啟") { document.getElementById('closedSection').style.display = 'block'; return; }
+        document.getElementById('formSection').style.display = 'block';
+        document.getElementById('resTitle').innerText = "🥤 今日店家：" + data.restaurant;
         
-        // 規則判定：超過 35 元，加料價格設為 0
-        let finalExtraPrice = currentPrice > 35 ? 0 : extraPrice;
-        let total = (currentPrice + finalExtraPrice) * qty;
+        menuStore = data.menu;
+        extraStore = data.extras;
 
-        let priceText = `單價 $${currentPrice}`;
-        if (extraPrice > 0) {
-            priceText += ` + 加料 $${finalExtraPrice} ${currentPrice > 35 ? '(已折抵)' : ''}`;
-        }
-        
-        document.getElementById('priceDisplay').innerHTML = currentPrice > 0 ? 
-            `${priceText} x ${qty} = 總計 <span class="price-tag">$${total}</span>` : "";
-        
-        // 更新找零計算...
+        // 填充飲品選單
+        const menuSelect = document.getElementById('menuSelect');
+        menuSelect.add(new Option("-- 請選擇飲品 --", ""));
+        data.menu.forEach(row => { if(row[0]) menuSelect.add(new Option(`${row[0]} ($${row[1]})`, row[0])); });
+
+        // 填充加料選單
+        const extraSelect = document.getElementById('extraSelect');
+        data.extras.forEach(row => { 
+            let opt = new Option(`${row[0]} (+$${row[1]})`, row[0]);
+            opt.dataset.price = row[1];
+            extraSelect.add(opt); 
+        });
+    });
+};
+
+function updateUI() {
+    let qty = parseInt(document.getElementById('qtyInput').value) || 1;
+    let extraOpt = document.getElementById('extraSelect').selectedOptions[0];
+    let extraPrice = extraOpt ? parseFloat(extraOpt.dataset.price) : 0;
+    
+    // 50嵐特殊規則：單價 > 35 加料免費
+    let isFree = currentPrice > 35 && extraPrice > 0;
+    let finalExtraPrice = isFree ? 0 : extraPrice;
+    let total = (currentPrice + finalExtraPrice) * qty;
+
+    let detail = `單價 $${currentPrice}`;
+    if (extraPrice > 0) {
+        detail += ` + 加料 $${finalExtraPrice} ${isFree ? '<span class="text-success">(免費)</span>' : ''}`;
     }
-</script>
+    document.getElementById('priceDisplay').innerHTML = `${detail} x ${qty} = 總計 <span class="price-tag">$${total}</span>`;
+}
