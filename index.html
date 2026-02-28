@@ -1,45 +1,207 @@
-/* 在 HTML 的 <script> 區塊更新這幾段核心邏輯 */
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我喝故我在? 造型飲料點餐系統</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root { --main-blue: #005a9c; --bg-color: #f0f4f8; }
+        body { background-color: var(--bg-color); padding: 20px; font-family: "Microsoft JhengHei", sans-serif; }
+        .order-card { background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); padding: 30px; max-width: 550px; margin: auto; border-top: 10px solid var(--main-blue); }
+        .btn-submit { background-color: var(--main-blue); color: white; width: 100%; border-radius: 30px; padding: 12px; font-weight: bold; border: none; transition: 0.3s; }
+        .btn-submit:hover { background-color: #004477; transform: translateY(-2px); }
+        #paymentSection { background-color: #f0f7ff; border-left: 5px solid var(--main-blue); padding: 15px; border-radius: 8px; display: none; margin-top: 15px; }
+        .price-tag { color: var(--main-blue); font-weight: 900; font-size: 1.5rem; }
+        .promo-badge { background-color: #fff9db; border: 1px dashed #fab005; padding: 10px; border-radius: 10px; font-size: 0.85rem; color: #856404; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
 
-let menuStore = [], extraStore = [], currentPrice = 0;
+<div class="container">
+    <div id="loading" class="text-center py-5">
+        <div class="spinner-border text-primary"></div>
+        <p class="mt-2 text-secondary">正在連線至點餐伺服器...</p>
+    </div>
 
-window.onload = () => {
-    fetch(GAS_URL).then(res => res.json()).then(data => {
-        document.getElementById('loading').style.display = 'none';
-        if (data.status !== "開啟") { document.getElementById('closedSection').style.display = 'block'; return; }
-        document.getElementById('formSection').style.display = 'block';
-        document.getElementById('resTitle').innerText = "🥤 今日店家：" + data.restaurant;
-        
-        menuStore = data.menu;
-        extraStore = data.extras;
+    <div id="formSection" class="order-card" style="display:none;">
+        <h3 class="text-center mb-1" id="resTitle" style="color: var(--main-blue); font-weight: 900;">載入中...</h3>
+        <p class="text-center text-secondary small mb-3">造型飲料點餐系統</p>
 
-        // 填充飲品選單
-        const menuSelect = document.getElementById('menuSelect');
-        menuSelect.add(new Option("-- 請選擇飲品 --", ""));
-        data.menu.forEach(row => { if(row[0]) menuSelect.add(new Option(`${row[0]} ($${row[1]})`, row[0])); });
+        <div class="promo-badge text-center">
+            <strong>💡 50嵐優惠：</strong> 飲料單價超過 <strong>$35</strong>，加料(珍珠/波霸/燕麥) <strong>$0 免費</strong>！
+        </div>
 
-        // 填充加料選單
-        const extraSelect = document.getElementById('extraSelect');
-        data.extras.forEach(row => { 
-            let opt = new Option(`${row[0]} (+$${row[1]})`, row[0]);
-            opt.dataset.price = row[1];
-            extraSelect.add(opt); 
-        });
-    });
-};
+        <form id="orderForm">
+            <div class="mb-3">
+                <label class="form-label fw-bold">您的姓名</label>
+                <input type="text" id="userName" class="form-control" placeholder="請輸入姓名" required>
+            </div>
 
-function updateUI() {
-    let qty = parseInt(document.getElementById('qtyInput').value) || 1;
-    let extraOpt = document.getElementById('extraSelect').selectedOptions[0];
-    let extraPrice = extraOpt ? parseFloat(extraOpt.dataset.price) : 0;
+            <div class="mb-3">
+                <label class="form-label fw-bold">選擇飲品</label>
+                <select id="menuSelect" class="form-select" required></select>
+            </div>
+
+            <div class="row">
+                <div class="col-6 mb-3">
+                    <label class="form-label fw-bold">冰塊</label>
+                    <select id="iceSelect" class="form-select" required>
+                        <option value="正常冰">正常冰</option>
+                        <option value="少冰">少冰</option>
+                        <option value="微冰">微冰</option>
+                        <option value="去冰">去冰</option>
+                        <option value="完全去冰">完全去冰</option>
+                        <option value="常溫">常溫</option>
+                        <option value="熱">熱</option>
+                    </select>
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label fw-bold">甜度</label>
+                    <select id="sugarSelect" class="form-select" required>
+                        <option value="正常甜">正常甜</option>
+                        <option value="少糖(7分)">少糖(7分)</option>
+                        <option value="半糖(5分)">半糖(5分)</option>
+                        <option value="微糖(3分)">微糖(3分)</option>
+                        <option value="二分糖">二分糖</option>
+                        <option value="一分糖">一分糖</option>
+                        <option value="無糖">無糖</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">加點配料</label>
+                <select id="extraSelect" class="form-select"></select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">數量</label>
+                <input type="number" id="qtyInput" class="form-control" value="1" min="1" required>
+                <div id="priceDisplay" class="mt-2 text-end"></div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">備註</label>
+                <input type="text" id="note" class="form-control" placeholder="加波霸、珍珠、不加料...">
+            </div>
+
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="paidCheck">
+                <label class="form-check-label fw-bold" for="paidCheck" style="color: var(--main-blue);"> 我已現場繳費 </label>
+            </div>
+
+            <div id="paymentSection">
+                <label class="form-label small fw-bold">收取金額</label>
+                <input type="number" id="receivedAmt" class="form-control mb-2" placeholder="請輸入面額">
+                <div class="fw-bold">找零：<span id="changeAmt" class="text-danger">$0</span></div>
+            </div>
+
+            <button type="submit" id="submitBtn" class="btn btn-submit mt-4">確認送出訂單</button>
+        </form>
+        <div id="msg" class="text-center mt-3 fw-bold text-success"></div>
+    </div>
+
+    <div id="closedSection" class="order-card text-center py-5" style="display:none;">
+        <h2 style="color: var(--main-blue); font-weight: bold;">🛑 休息中</h2>
+        <p class="text-secondary mt-3">目前非訂餐時間，請洽主揪 Dimlos！🥤</p>
+    </div>
+</div>
+
+<script>
+    // --- 重要：請替換成你新部署的 GAS 網址 ---
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyGTYv98DOd9mxMm72pDQF08Eism1jyVOd2k4DK_onA1WZtqEn2wZEGJF9bUTjoWQHx/exec"; 
     
-    // 50嵐特殊規則：單價 > 35 加料免費
-    let isFree = currentPrice > 35 && extraPrice > 0;
-    let finalExtraPrice = isFree ? 0 : extraPrice;
-    let total = (currentPrice + finalExtraPrice) * qty;
+    let menuStore = [], extraStore = [], currentPrice = 0;
 
-    let detail = `單價 $${currentPrice}`;
-    if (extraPrice > 0) {
-        detail += ` + 加料 $${finalExtraPrice} ${isFree ? '<span class="text-success">(免費)</span>' : ''}`;
+    window.onload = () => {
+        fetch(GAS_URL).then(res => res.json()).then(data => {
+            document.getElementById('loading').style.display = 'none';
+            if (data.status !== "開啟") { document.getElementById('closedSection').style.display = 'block'; return; }
+            document.getElementById('formSection').style.display = 'block';
+            document.getElementById('resTitle').innerText = "今日店家：" + (data.restaurant || "50嵐");
+            
+            menuStore = data.menu;
+            extraStore = data.extras;
+
+            // 填充飲品
+            const menuSel = document.getElementById('menuSelect');
+            menuSel.add(new Option("-- 請選擇飲品 --", ""));
+            data.menu.forEach(row => { if(row[0]) menuSel.add(new Option(`${row[0]} ($${row[1]})`, row[0])); });
+
+            // 填充加料
+            const extraSel = document.getElementById('extraSelect');
+            data.extras.forEach(row => { 
+                let opt = new Option(`${row[0]} (+$${row[1]})`, row[0]);
+                opt.dataset.price = row[1];
+                extraSel.add(opt); 
+            });
+        });
+    };
+
+    function updateUI() {
+        const item = menuStore.find(r => r[0] === document.getElementById('menuSelect').value);
+        currentPrice = item ? item[1] : 0;
+        
+        let qty = parseInt(document.getElementById('qtyInput').value) || 1;
+        let extraOpt = document.getElementById('extraSelect').selectedOptions[0];
+        let extraPrice = extraOpt ? parseFloat(extraOpt.dataset.price) : 0;
+        
+        // 50嵐核心規則：單價 > 35 加料免費
+        let isFree = currentPrice > 35 && extraPrice > 0;
+        let finalExtraPrice = isFree ? 0 : extraPrice;
+        let total = (currentPrice + finalExtraPrice) * qty;
+
+        let detail = `單價 $${currentPrice}`;
+        if (extraPrice > 0) {
+            detail += ` + 加料 $${finalExtraPrice} ${isFree ? '<span class="text-success small">(已折抵)</span>' : ''}`;
+        }
+        document.getElementById('priceDisplay').innerHTML = currentPrice > 0 ? `${detail} x ${qty} = 總計 <span class="price-tag">$${total}</span>` : "";
+        
+        let received = parseFloat(document.getElementById('receivedAmt').value) || 0;
+        let change = received - total;
+        document.getElementById('changeAmt').innerText = change >= 0 ? `$${change}` : "金額不足";
     }
-    document.getElementById('priceDisplay').innerHTML = `${detail} x ${qty} = 總計 <span class="price-tag">$${total}</span>`;
-}
+
+    document.getElementById('menuSelect').onchange = updateUI;
+    document.getElementById('extraSelect').onchange = updateUI;
+    document.getElementById('qtyInput').oninput = updateUI;
+    document.getElementById('receivedAmt').oninput = updateUI;
+    document.getElementById('paidCheck').onchange = function() {
+        document.getElementById('paymentSection').style.display = this.checked ? 'block' : 'none';
+    };
+
+    document.getElementById('orderForm').onsubmit = function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true; btn.innerText = "傳送中...";
+        
+        const extraOpt = document.getElementById('extraSelect').selectedOptions[0];
+        const extraPrice = extraOpt ? parseFloat(extraOpt.dataset.price) : 0;
+
+        const payload = {
+            userName: document.getElementById('userName').value,
+            item: document.getElementById('menuSelect').value,
+            ice: document.getElementById('iceSelect').value,
+            sugar: document.getElementById('sugarSelect').value,
+            extraItem: document.getElementById('extraSelect').value,
+            price: currentPrice,
+            extraPrice: extraPrice, // 傳送原始價格，由 GAS 判斷規則
+            quantity: document.getElementById('qtyInput').value,
+            note: document.getElementById('note').value,
+            hasPaid: document.getElementById('paidCheck').checked,
+            receivedAmount: document.getElementById('receivedAmt').value
+        };
+
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
+        .then(res => res.json()).then(res => {
+            document.getElementById('msg').innerText = res.result;
+            this.reset(); btn.disabled = false; btn.innerText = "確認送出訂單";
+            document.getElementById('paymentSection').style.display = 'none';
+            document.getElementById('priceDisplay').innerText = "";
+            setTimeout(() => { document.getElementById('msg').innerText = ""; }, 5000);
+        });
+    };
+</script>
+</body>
+</html>
