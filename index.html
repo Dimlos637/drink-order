@@ -6,22 +6,24 @@
     <title>我喝故我在? 造型飲料點餐系統</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        :root { --main-blue: #005a9c; --bg-color: #f0f4f8; }
+        :root { --main-blue: #005a9c; --bg-color: #f0f4f8; --vvip-pink: #d63384; }
         body { background-color: var(--bg-color); padding: 15px; font-family: "Microsoft JhengHei", sans-serif; }
-        .order-card { background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); padding: 25px; max-width: 500px; margin: auto; border-top: 10px solid var(--main-blue); }
+        .order-card { background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); padding: 25px; max-width: 500px; margin: auto; border-top: 10px solid var(--main-blue); transition: 0.3s; }
         .btn-submit { background-color: var(--main-blue); color: white; width: 100%; border-radius: 30px; padding: 12px; font-weight: bold; border: none; transition: 0.3s; margin-top: 20px; }
         .btn-submit:hover { background-color: #004477; transform: translateY(-2px); }
         #paymentSection { background-color: #f0f7ff; border-left: 5px solid var(--main-blue); padding: 15px; border-radius: 8px; display: none; margin-top: 15px; }
         .price-tag { color: var(--main-blue); font-weight: 900; font-size: 1.5rem; }
         .promo-badge { background-color: #fff9db; border: 1px dashed #fab005; padding: 10px; border-radius: 10px; font-size: 0.85rem; color: #856404; margin-bottom: 20px; text-align: center; }
+        .vvip-badge { background-color: #fff0f6; border: 1px solid var(--vvip-pink); color: var(--vvip-pink); display: none; }
+        .vvip-text { color: var(--vvip-pink); font-weight: 900; animation: heartBeat 1.5s infinite; }
+        @keyframes heartBeat { 0% {transform: scale(1);} 50% {transform: scale(1.03);} 100% {transform: scale(1);} }
         .form-label { font-weight: bold; color: #444; margin-top: 10px; }
-        #loading { padding: 50px 0; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="loading" class="text-center">
+    <div id="loading" class="text-center py-5">
         <div class="spinner-border text-primary"></div>
         <p class="mt-2 text-secondary">正在連線至點餐系統...</p>
     </div>
@@ -30,8 +32,8 @@
         <h3 class="text-center mb-1" id="resTitle" style="color: var(--main-blue); font-weight: 900;">載入中...</h3>
         <p class="text-center text-secondary small mb-3">造型飲料點餐系統</p>
 
-        <div class="promo-badge">
-            <strong>🥤 50嵐限定：</strong> 單價超過 <strong>$35</strong>，加料(珍珠/燕麥等) <strong>$0 免費</strong>！
+        <div class="promo-badge" id="promoInfo">
+            <strong>🥤 50嵐限定：</strong> 單價超過 <strong>$35</strong>，加料 <strong>$0 免費</strong>！
         </div>
 
         <form id="orderForm">
@@ -85,12 +87,12 @@
 
             <div class="mb-3">
                 <label class="form-label">備註</label>
-                <input type="text" id="note" class="form-control" placeholder="加波霸、珍珠、仙草...">
+                <input type="text" id="note" class="form-control" placeholder="備註或是悄悄話...">
             </div>
 
             <div class="mb-3 form-check">
                 <input type="checkbox" class="form-check-input" id="paidCheck">
-                <label class="form-check-label fw-bold" for="paidCheck" style="color: var(--main-blue);"> 我已現場繳費 </label>
+                <label class="form-check-label fw-bold" for="paidCheck" id="paidLabel" style="color: var(--main-blue);"> 我已現場繳費 </label>
             </div>
 
             <div id="paymentSection">
@@ -105,31 +107,27 @@
     </div>
 
     <div id="closedSection" class="order-card text-center py-5" style="display:none;">
-        <h2 style="color: var(--main-blue); font-weight: bold;">🛑 目前休息中</h2>
-        <p class="text-secondary mt-3">現在不是訂餐時間，請明天請早！🥤</p>
+        <h2 style="color: var(--main-blue); font-weight: bold;">🛑 休息中</h2>
+        <p class="text-secondary mt-3">目前非訂餐時間，請洽 Dimlos！🥤</p>
     </div>
 </div>
 
 <script>
-    // --- ⚠️ 重要：請替換成你新部署的 GAS 網址 ⚠️ ---
+    // --- ⚠️ 重要：請替換成你的 GAS 網址 ⚠️ ---
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyGTYv98DOd9mxMm72pDQF08Eism1jyVOd2k4DK_onA1WZtqEn2wZEGJF9bUTjoWQHx/exec"; 
     
-    let menuStore = [], extraStore = [], currentBasePrice = 0;
+    let menuStore = [], extraStore = [], vvipList = [], currentBasePrice = 0;
 
-    // 1. 初始化資料
     window.onload = () => {
         fetch(GAS_URL).then(res => res.json()).then(data => {
             document.getElementById('loading').style.display = 'none';
-            // 檢查 Menu!G2 狀態
-            if (data.status !== "開啟") { 
-                document.getElementById('closedSection').style.display = 'block'; 
-                return; 
-            }
+            if (data.status !== "開啟") { document.getElementById('closedSection').style.display = 'block'; return; }
             document.getElementById('formSection').style.display = 'block';
-            document.getElementById('resTitle').innerText = "今日店家：" + (data.restaurant || "讀取中");
+            document.getElementById('resTitle').innerText = "今日店家：" + data.restaurant;
             
             menuStore = data.menu;
             extraStore = data.extras;
+            vvipList = data.vvip; // 從 GAS 獲取 VVIP 名單
 
             // 填充飲品
             const menuSel = document.getElementById('menuSelect');
@@ -143,41 +141,54 @@
                 opt.dataset.price = row[1];
                 extraSel.add(opt); 
             });
-        }).catch(err => {
-            alert("連線失敗，請檢查 GAS 網址是否正確且已部署為『任何人』可存取。");
         });
     };
 
-    // 2. 計算價格邏輯
+    // VVIP 名稱監聽邏輯
+    document.getElementById('userName').addEventListener('input', function() {
+        const label = document.getElementById('paidLabel');
+        const check = document.getElementById('paidCheck');
+        const card = document.querySelector('.order-card');
+        const isVVIP = vvipList.includes(this.value.trim());
+
+        if (isVVIP) {
+            label.innerHTML = "✨ <span class='vvip-text'>飲料要錢誰敢喝阿 (老大請客！)</span>";
+            check.checked = true;
+            check.disabled = true;
+            card.style.borderColor = "#d63384";
+            document.getElementById('paymentSection').style.display = 'none';
+        } else {
+            label.innerHTML = "我已現場繳費";
+            check.disabled = false;
+            card.style.borderColor = "#005a9c";
+            updateUI();
+        }
+    });
+
     function updateUI() {
         const selectedItem = menuStore.find(r => r[0] === document.getElementById('menuSelect').value);
         currentBasePrice = selectedItem ? selectedItem[1] : 0;
         
         let qty = parseInt(document.getElementById('qtyInput').value) || 1;
         let extraOpt = document.getElementById('extraSelect').selectedOptions[0];
-        let extraName = extraOpt ? extraOpt.value : "";
-        let originalExtraPrice = extraOpt ? parseFloat(extraOpt.dataset.price) : 0;
+        let extraPrice = extraOpt ? parseFloat(extraOpt.dataset.price) : 0;
         
-        // 核心邏輯：單價超過 35 元，加料價格歸 0
-        let isFree = currentBasePrice > 35 && originalExtraPrice > 0;
-        let finalExtraPrice = isFree ? 0 : originalExtraPrice;
+        let isFree = currentBasePrice > 35 && extraPrice > 0;
+        let finalExtraPrice = isFree ? 0 : extraPrice;
         let total = (currentBasePrice + finalExtraPrice) * qty;
 
         let detailText = `單價 $${currentBasePrice}`;
-        if (originalExtraPrice > 0) {
+        if (extraPrice > 0) {
             detailText += ` + 加料 $${finalExtraPrice} ${isFree ? '<span class="text-success small">(已折抵)</span>' : ''}`;
         }
         
         document.getElementById('priceDisplay').innerHTML = currentBasePrice > 0 ? 
             `${detailText} x ${qty} = 總計 <span class="price-tag">$${total}</span>` : "";
         
-        // 計算找零
         let received = parseFloat(document.getElementById('receivedAmt').value) || 0;
-        let change = received - total;
-        document.getElementById('changeAmt').innerText = change >= 0 ? `$${change}` : "金額不足";
+        document.getElementById('changeAmt').innerText = `$${received - total}`;
     }
 
-    // 3. 事件監聽
     document.getElementById('menuSelect').onchange = updateUI;
     document.getElementById('extraSelect').onchange = updateUI;
     document.getElementById('qtyInput').oninput = updateUI;
@@ -186,24 +197,21 @@
         document.getElementById('paymentSection').style.display = this.checked ? 'block' : 'none';
     };
 
-    // 4. 送出表單
     document.getElementById('orderForm').onsubmit = function(e) {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
-        btn.disabled = true; btn.innerText = "正在傳送訂單...";
+        btn.disabled = true; btn.innerText = "正在送出訂單...";
         
         const extraOpt = document.getElementById('extraSelect').selectedOptions[0];
-        const extraName = extraOpt ? extraOpt.value : "不加料";
-        const originalExtraPrice = extraOpt ? parseFloat(extraOpt.dataset.price) : 0;
 
         const payload = {
             userName: document.getElementById('userName').value,
             item: document.getElementById('menuSelect').value,
             ice: document.getElementById('iceSelect').value,
             sugar: document.getElementById('sugarSelect').value,
-            extraItem: extraName,
+            extraItem: document.getElementById('extraSelect').value,
             price: currentBasePrice,
-            extraPrice: originalExtraPrice, // 由 GAS 二次判斷規則寫入
+            extraPrice: extraOpt ? parseFloat(extraOpt.dataset.price) : 0,
             quantity: document.getElementById('qtyInput').value,
             note: document.getElementById('note').value,
             hasPaid: document.getElementById('paidCheck').checked,
@@ -217,6 +225,8 @@
             btn.disabled = false; btn.innerText = "確認送出訂單";
             document.getElementById('paymentSection').style.display = 'none';
             document.getElementById('priceDisplay').innerText = "";
+            document.getElementById('paidLabel').innerHTML = "我已現場繳費";
+            document.getElementById('paidCheck').disabled = false;
             setTimeout(() => { document.getElementById('msg').innerText = ""; }, 5000);
         });
     };
