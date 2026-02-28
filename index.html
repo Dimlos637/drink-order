@@ -18,7 +18,7 @@
             max-width: 500px; 
             margin: auto; 
             border-top: 10px solid var(--main-blue); 
-            transition: all 0.5s ease; /* 增加平滑過渡感 */
+            transition: all 0.5s ease;
         }
 
         /* ✨ 黃金閃光動畫 ✨ */
@@ -28,10 +28,7 @@
             100% { border-color: var(--main-blue); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         }
 
-        /* VVIP 啟動時的類別 */
-        .vvip-active {
-            animation: goldGlow 2s infinite ease-in-out;
-        }
+        .vvip-active { animation: goldGlow 2s infinite ease-in-out; }
 
         .btn-submit { background-color: var(--main-blue); color: white; width: 100%; border-radius: 30px; padding: 12px; font-weight: bold; border: none; transition: 0.3s; margin-top: 20px; }
         .btn-submit:hover { background-color: #004477; transform: translateY(-2px); }
@@ -39,7 +36,6 @@
         .price-tag { color: var(--main-blue); font-weight: 900; font-size: 1.5rem; }
         .promo-badge { background-color: #fff9db; border: 1px dashed #fab005; padding: 10px; border-radius: 10px; font-size: 0.85rem; color: #856404; margin-bottom: 20px; text-align: center; }
         
-        /* VVIP 文字特效 */
         .vvip-text { color: var(--vvip-pink); font-weight: 900; animation: heartBeat 1.5s infinite; display: inline-block; }
         @keyframes heartBeat { 0% {transform: scale(1);} 50% {transform: scale(1.05);} 100% {transform: scale(1);} }
         
@@ -75,7 +71,17 @@
 
             <div class="row">
                 <div class="col-6"><label class="form-label">冰塊</label><select id="iceSelect" class="form-select" required><option value="正常冰">正常冰</option><option value="少冰">少冰</option><option value="微冰">微冰</option><option value="去冰">去冰</option><option value="完全去冰">完全去冰</option><option value="常溫">常溫</option><option value="熱">熱</option></select></div>
-                <div class="col-6"><label class="form-label">甜度</label><select id="sugarSelect" class="form-select" required><option value="正常甜">正常甜</option><option value="少糖(7分)">少糖(7分)</option><option value="半糖(5分)">半糖(5分)</option><option value="微糖(3分)">微糖(3分)</option><option value="二分糖">二分糖</option><option value="一分糖">一分糖</option><option value="無糖">無糖</option></select></div>
+                <div class="col-6">
+                    <label class="form-label">甜度</label>
+                    <select id="sugarSelect" class="form-select" required>
+                        <option value="正常甜">正常甜</option>
+                        <option value="少糖(7分)">少糖(7分)</option>
+                        <option value="半糖(5分)">半糖(5分)</option>
+                        <option value="微糖(3分)">微糖(3分)</option>
+                        <option value="一分糖">一分糖</option>
+                        <option value="無糖">無糖</option>
+                    </select>
+                </div>
             </div>
 
             <div class="mb-3 mt-3">
@@ -146,24 +152,22 @@
         });
     };
 
-    // VVIP 名稱監聽邏輯（含金光動畫切換）
     document.getElementById('userName').addEventListener('input', function() {
         const label = document.getElementById('paidLabel');
         const check = document.getElementById('paidCheck');
-        const card = document.getElementById('formSection'); // 抓取卡片元素
+        const card = document.getElementById('formSection');
         const isVVIP = vvipList.includes(this.value.trim());
 
         if (isVVIP) {
-            // 切換為白嫖模式文字與金光效果
             label.innerHTML = "✨ <span class='vvip-text'>恭喜解鎖『白嫖模式』，僅限本日 VVIP 專用。</span>";
             check.checked = true;
             check.disabled = true;
-            card.classList.add('vvip-active'); // 開啟金光動畫
+            card.classList.add('vvip-active');
             document.getElementById('paymentSection').style.display = 'none';
         } else {
             label.innerHTML = "我已現場繳費";
             check.disabled = false;
-            card.classList.remove('vvip-active'); // 關閉金光動畫
+            card.classList.remove('vvip-active');
             updateUI();
         }
     });
