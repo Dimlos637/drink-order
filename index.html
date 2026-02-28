@@ -39,8 +39,28 @@
             100% { opacity: 0; visibility: hidden; }
         }
 
-        /* 按鈕與表單優化 */
-        .btn-random { background-color: #e7f1ff; border: 1px dashed var(--main-blue); color: var(--main-blue); width: 100%; border-radius: 12px; font-weight: bold; padding: 10px; margin-top: 10px; }
+        /* 🎲 隨機按鈕樣式修正 (加強狀態鎖定) 🎲 */
+        .btn-random { 
+            background-color: #e7f1ff !important; /* 強制保持淺藍底色 */
+            border: 1.5px dashed var(--main-blue) !important; 
+            color: var(--main-blue) !important; 
+            width: 100%; border-radius: 12px; font-weight: bold; 
+            padding: 10px; margin-top: 10px; transition: 0.2s;
+            box-shadow: none !important;
+        }
+        /* 滑鼠移上去變深藍 */
+        .btn-random:hover { 
+            background-color: var(--main-blue) !important; 
+            color: white !important; 
+            border-style: solid !important; 
+        }
+        /* 點選後聚焦與按下時的顏色確保 */
+        .btn-random:focus, .btn-random:active {
+            background-color: #d0e3ff !important;
+            border-style: solid !important;
+            box-shadow: 0 0 0 0.2rem rgba(0, 90, 156, 0.15) !important;
+        }
+
         .btn-submit { background-color: var(--main-blue); color: white; width: 100%; border-radius: 30px; padding: 12px; font-weight: bold; border: none; margin-top: 25px; }
         .btn-cancel { background-color: transparent; color: #666; width: 100%; border-radius: 30px; padding: 8px; font-size: 0.9rem; border: 1px solid #ccc; margin-top: 12px; }
         .price-tag { color: var(--main-blue); font-weight: 900; font-size: 1.5rem; }
@@ -127,23 +147,18 @@
         });
     };
 
-    // --- 💎 VVIP 偵測邏輯 (重新歸位) ---
+    // VVIP 偵測邏輯
     document.getElementById('userName').addEventListener('input', function() {
         const isVVIP = vvipList.includes(this.value.trim());
         const card = document.getElementById('formSection');
         const check = document.getElementById('paidCheck');
         const label = document.getElementById('paidLabel');
-
         if (isVVIP) {
             label.innerHTML = "✨ <span class='vvip-text'>恭喜解鎖『白嫖模式』，僅限本日 VVIP 專用。</span>";
-            check.checked = true;
-            check.disabled = true;
-            card.classList.add('vvip-active');
+            check.checked = true; check.disabled = true; card.classList.add('vvip-active');
             document.getElementById('paymentSection').style.display = 'none';
         } else {
-            label.innerHTML = "我已現場繳費";
-            check.disabled = false;
-            card.classList.remove('vvip-active');
+            label.innerHTML = "我已現場繳費"; check.disabled = false; card.classList.remove('vvip-active');
             updateUI();
         }
     });
@@ -161,6 +176,10 @@
         document.getElementById('iceSelect').selectedIndex = Math.floor(Math.random() * 7);
         document.getElementById('sugarSelect').selectedIndex = Math.floor(Math.random() * 6);
         updateUI();
+
+        const btn = this;
+        btn.innerText = "⚡ 重新挑戰 🎲";
+        setTimeout(() => { btn.blur(); }, 100); // 點擊後短暫失去焦點，讓樣式重置
     };
 
     function updateUI() {
@@ -173,8 +192,6 @@
         document.getElementById('priceDisplay').innerHTML = currentBasePrice > 0 ? `總計 <span class="price-tag">$${total}</span>` : "";
         let received = parseFloat(document.getElementById('receivedAmt').value) || 0;
         document.getElementById('changeAmt').innerText = `$${received - total}`;
-        
-        // 如果非 VVIP 且勾選了已繳費，才顯示找零區
         if (!document.getElementById('paidCheck').disabled) {
             document.getElementById('paymentSection').style.display = document.getElementById('paidCheck').checked ? 'block' : 'none';
         }
@@ -192,16 +209,11 @@
         btn.disabled = true; btn.innerText = "傳送中...";
         const payload = {
             userName: document.getElementById('userName').value,
-            item: document.getElementById('menuSelect').value, 
-            ice: document.getElementById('iceSelect').value,
-            sugar: document.getElementById('sugarSelect').value, 
-            extraItem: document.getElementById('extraSelect').value,
-            price: currentBasePrice, 
-            extraPrice: document.getElementById('extraSelect').selectedOptions[0] ? parseFloat(document.getElementById('extraSelect').selectedOptions[0].dataset.price) : 0,
-            quantity: document.getElementById('qtyInput').value, 
-            note: document.getElementById('note').value,
-            hasPaid: document.getElementById('paidCheck').checked, 
-            receivedAmount: document.getElementById('receivedAmt').value
+            item: document.getElementById('menuSelect').value, ice: document.getElementById('iceSelect').value,
+            sugar: document.getElementById('sugarSelect').value, extraItem: document.getElementById('extraSelect').value,
+            price: currentBasePrice, extraPrice: document.getElementById('extraSelect').selectedOptions[0] ? parseFloat(document.getElementById('extraSelect').selectedOptions[0].dataset.price) : 0,
+            quantity: document.getElementById('qtyInput').value, note: document.getElementById('note').value,
+            hasPaid: document.getElementById('paidCheck').checked, receivedAmount: document.getElementById('receivedAmt').value
         };
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
         .then(res => res.json()).then(res => {
@@ -211,6 +223,7 @@
             document.getElementById('priceDisplay').innerText = "";
             document.getElementById('paidLabel').innerHTML = "我已現場繳費";
             document.getElementById('paidCheck').disabled = false;
+            document.getElementById('randomBtn').innerText = "🎲 今天想被雷 (命運選單)";
         }).catch(err => {
             alert("提交失敗，請檢查連線。");
             btn.disabled = false;
