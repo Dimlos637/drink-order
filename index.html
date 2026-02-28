@@ -12,20 +12,25 @@
         .order-card { 
             background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
             padding: 25px; max-width: 500px; margin: auto; border-top: 10px solid var(--main-blue); 
-            position: relative; z-index: 10;
+            position: relative; z-index: 10; transition: all 0.5s ease;
         }
 
-        /* ⚡ 閃電特效優化：平常完全消失，不擋點擊 ⚡ */
+        /* ✨ VVIP 黃金閃爍動畫 ✨ */
+        @keyframes goldGlow { 
+            0% { border-top-color: var(--main-blue); } 
+            50% { border-top-color: var(--vvip-gold); box-shadow: 0 0 25px var(--vvip-gold); border-top-width: 20px; } 
+            100% { border-top-color: var(--main-blue); } 
+        }
+        .vvip-active { animation: goldGlow 2s infinite ease-in-out; }
+        .vvip-text { color: var(--vvip-pink); font-weight: 900; animation: heartBeat 1.5s infinite; display: inline-block; }
+        @keyframes heartBeat { 0% {transform: scale(1);} 50% {transform: scale(1.05);} 100% {transform: scale(1);} }
+
+        /* ⚡ 閃電特效 ⚡ */
         #flash-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background-color: white; visibility: hidden; pointer-events: none; z-index: 9999;
         }
-
-        .lightning-effect {
-            visibility: visible !important;
-            animation: lightning-strike 0.4s ease-out forwards;
-        }
-
+        .lightning-effect { visibility: visible !important; animation: lightning-strike 0.4s ease-out forwards; }
         @keyframes lightning-strike {
             0% { opacity: 0; }
             10% { opacity: 0.8; background-color: #fffce0; }
@@ -34,15 +39,13 @@
             100% { opacity: 0; visibility: hidden; }
         }
 
-        .btn-random { background-color: #e7f1ff; border: 1px dashed var(--main-blue); color: var(--main-blue); width: 100%; border-radius: 12px; font-weight: bold; padding: 10px; margin-top: 10px; transition: 0.3s; }
-        .btn-random:hover { background-color: var(--main-blue); color: white; border-style: solid; }
-        .btn-submit { background-color: var(--main-blue); color: white; width: 100%; border-radius: 30px; padding: 12px; font-weight: bold; border: none; margin-top: 25px; cursor: pointer; }
+        /* 按鈕與表單優化 */
+        .btn-random { background-color: #e7f1ff; border: 1px dashed var(--main-blue); color: var(--main-blue); width: 100%; border-radius: 12px; font-weight: bold; padding: 10px; margin-top: 10px; }
+        .btn-submit { background-color: var(--main-blue); color: white; width: 100%; border-radius: 30px; padding: 12px; font-weight: bold; border: none; margin-top: 25px; }
         .btn-cancel { background-color: transparent; color: #666; width: 100%; border-radius: 30px; padding: 8px; font-size: 0.9rem; border: 1px solid #ccc; margin-top: 12px; }
-
         .price-tag { color: var(--main-blue); font-weight: 900; font-size: 1.5rem; }
         .promo-badge { background-color: #fff9db; border: 1px dashed #fab005; padding: 10px; border-radius: 10px; font-size: 0.85rem; color: #856404; margin-bottom: 20px; text-align: center; }
         .form-label { font-weight: bold; color: #444; margin-top: 10px; display: block; }
-        .form-select, .form-control { border-radius: 10px; padding: 10px; }
     </style>
 </head>
 <body>
@@ -121,13 +124,31 @@
             data.menu.forEach(row => { if(row[0]) menuSel.add(new Option(`${row[0]} ($${row[1]})`, row[0])); });
             const extraSel = document.getElementById('extraSelect');
             data.extras.forEach(row => { let opt = new Option(`${row[0]} (+$${row[1]})`, row[0]); opt.dataset.price = row[1]; extraSel.add(opt); });
-        }).catch(err => {
-            alert("伺服器連線異常，請重新整理頁面。");
-            console.error(err);
         });
     };
 
-    // ⚡ 隨機鈕優化邏輯
+    // --- 💎 VVIP 偵測邏輯 (重新歸位) ---
+    document.getElementById('userName').addEventListener('input', function() {
+        const isVVIP = vvipList.includes(this.value.trim());
+        const card = document.getElementById('formSection');
+        const check = document.getElementById('paidCheck');
+        const label = document.getElementById('paidLabel');
+
+        if (isVVIP) {
+            label.innerHTML = "✨ <span class='vvip-text'>恭喜解鎖『白嫖模式』，僅限本日 VVIP 專用。</span>";
+            check.checked = true;
+            check.disabled = true;
+            card.classList.add('vvip-active');
+            document.getElementById('paymentSection').style.display = 'none';
+        } else {
+            label.innerHTML = "我已現場繳費";
+            check.disabled = false;
+            card.classList.remove('vvip-active');
+            updateUI();
+        }
+    });
+
+    // ⚡ 隨機鈕邏輯
     document.getElementById('randomBtn').onclick = function() {
         if (menuStore.length === 0) return;
         const overlay = document.getElementById('flash-overlay');
@@ -152,13 +173,18 @@
         document.getElementById('priceDisplay').innerHTML = currentBasePrice > 0 ? `總計 <span class="price-tag">$${total}</span>` : "";
         let received = parseFloat(document.getElementById('receivedAmt').value) || 0;
         document.getElementById('changeAmt').innerText = `$${received - total}`;
+        
+        // 如果非 VVIP 且勾選了已繳費，才顯示找零區
+        if (!document.getElementById('paidCheck').disabled) {
+            document.getElementById('paymentSection').style.display = document.getElementById('paidCheck').checked ? 'block' : 'none';
+        }
     }
 
     document.getElementById('menuSelect').onchange = updateUI;
     document.getElementById('extraSelect').onchange = updateUI;
     document.getElementById('qtyInput').oninput = updateUI;
     document.getElementById('receivedAmt').oninput = updateUI;
-    document.getElementById('paidCheck').onchange = function() { document.getElementById('paymentSection').style.display = this.checked ? 'block' : 'none'; };
+    document.getElementById('paidCheck').onchange = updateUI;
 
     document.getElementById('orderForm').onsubmit = function(e) {
         e.preventDefault();
@@ -166,19 +192,27 @@
         btn.disabled = true; btn.innerText = "傳送中...";
         const payload = {
             userName: document.getElementById('userName').value,
-            item: document.getElementById('menuSelect').value, ice: document.getElementById('iceSelect').value,
-            sugar: document.getElementById('sugarSelect').value, extraItem: document.getElementById('extraSelect').value,
-            price: currentBasePrice, extraPrice: document.getElementById('extraSelect').selectedOptions[0] ? parseFloat(document.getElementById('extraSelect').selectedOptions[0].dataset.price) : 0,
-            quantity: document.getElementById('qtyInput').value, note: document.getElementById('note').value,
-            hasPaid: document.getElementById('paidCheck').checked, receivedAmount: document.getElementById('receivedAmt').value
+            item: document.getElementById('menuSelect').value, 
+            ice: document.getElementById('iceSelect').value,
+            sugar: document.getElementById('sugarSelect').value, 
+            extraItem: document.getElementById('extraSelect').value,
+            price: currentBasePrice, 
+            extraPrice: document.getElementById('extraSelect').selectedOptions[0] ? parseFloat(document.getElementById('extraSelect').selectedOptions[0].dataset.price) : 0,
+            quantity: document.getElementById('qtyInput').value, 
+            note: document.getElementById('note').value,
+            hasPaid: document.getElementById('paidCheck').checked, 
+            receivedAmount: document.getElementById('receivedAmt').value
         };
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
         .then(res => res.json()).then(res => {
             alert(res.result);
             this.reset(); btn.disabled = false; btn.innerText = "確認送出訂單";
+            document.getElementById('formSection').classList.remove('vvip-active');
             document.getElementById('priceDisplay').innerText = "";
+            document.getElementById('paidLabel').innerHTML = "我已現場繳費";
+            document.getElementById('paidCheck').disabled = false;
         }).catch(err => {
-            alert("提交失敗，請檢查網路連線。");
+            alert("提交失敗，請檢查連線。");
             btn.disabled = false;
         });
     };
@@ -186,7 +220,7 @@
     document.getElementById('deleteBtn').onclick = function() {
         const name = document.getElementById('userName').value.trim();
         if (!name) return alert("請輸入姓名");
-        if (!confirm("確定撤回？")) return;
+        if (!confirm("確定撤回最後一筆訂單？")) return;
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "delete", userName: name }) })
         .then(res => res.json()).then(res => alert(res.result));
     };
