@@ -6,17 +6,43 @@
     <title>我喝故我在? 造型飲料點餐系統</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        :root { --main-blue: #005a9c; --bg-color: #f0f4f8; --vvip-pink: #d63384; }
+        :root { --main-blue: #005a9c; --bg-color: #f0f4f8; --vvip-gold: #ffd700; --vvip-pink: #d63384; }
         body { background-color: var(--bg-color); padding: 15px; font-family: "Microsoft JhengHei", sans-serif; }
-        .order-card { background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); padding: 25px; max-width: 500px; margin: auto; border-top: 10px solid var(--main-blue); transition: 0.3s; }
+        
+        /* 基礎卡片樣式 */
+        .order-card { 
+            background: white; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            padding: 25px; 
+            max-width: 500px; 
+            margin: auto; 
+            border-top: 10px solid var(--main-blue); 
+            transition: all 0.5s ease; /* 增加平滑過渡感 */
+        }
+
+        /* ✨ 黃金閃光動畫 ✨ */
+        @keyframes goldGlow {
+            0% { border-color: var(--main-blue); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+            50% { border-color: var(--vvip-gold); box-shadow: 0 0 25px var(--vvip-gold); border-top-width: 20px; }
+            100% { border-color: var(--main-blue); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        }
+
+        /* VVIP 啟動時的類別 */
+        .vvip-active {
+            animation: goldGlow 2s infinite ease-in-out;
+        }
+
         .btn-submit { background-color: var(--main-blue); color: white; width: 100%; border-radius: 30px; padding: 12px; font-weight: bold; border: none; transition: 0.3s; margin-top: 20px; }
         .btn-submit:hover { background-color: #004477; transform: translateY(-2px); }
         #paymentSection { background-color: #f0f7ff; border-left: 5px solid var(--main-blue); padding: 15px; border-radius: 8px; display: none; margin-top: 15px; }
         .price-tag { color: var(--main-blue); font-weight: 900; font-size: 1.5rem; }
         .promo-badge { background-color: #fff9db; border: 1px dashed #fab005; padding: 10px; border-radius: 10px; font-size: 0.85rem; color: #856404; margin-bottom: 20px; text-align: center; }
-        .vvip-badge { background-color: #fff0f6; border: 1px solid var(--vvip-pink); color: var(--vvip-pink); display: none; }
-        .vvip-text { color: var(--vvip-pink); font-weight: 900; animation: heartBeat 1.5s infinite; }
-        @keyframes heartBeat { 0% {transform: scale(1);} 50% {transform: scale(1.03);} 100% {transform: scale(1);} }
+        
+        /* VVIP 文字特效 */
+        .vvip-text { color: var(--vvip-pink); font-weight: 900; animation: heartBeat 1.5s infinite; display: inline-block; }
+        @keyframes heartBeat { 0% {transform: scale(1);} 50% {transform: scale(1.05);} 100% {transform: scale(1);} }
+        
         .form-label { font-weight: bold; color: #444; margin-top: 10px; }
     </style>
 </head>
@@ -25,14 +51,14 @@
 <div class="container">
     <div id="loading" class="text-center py-5">
         <div class="spinner-border text-primary"></div>
-        <p class="mt-2 text-secondary">正在連線至點餐系統...</p>
+        <p class="mt-2 text-secondary">正在連線至點餐伺服器...</p>
     </div>
 
     <div id="formSection" class="order-card" style="display:none;">
-        <h3 class="text-center mb-1" id="resTitle" style="color: var(--main-blue); font-weight: 900;">載入中...</h3>
+        <h3 class="text-center mb-1" id="resTitle" style="color: var(--main-blue); font-weight: 900;">今日店家</h3>
         <p class="text-center text-secondary small mb-3">造型飲料點餐系統</p>
 
-        <div class="promo-badge" id="promoInfo">
+        <div class="promo-badge">
             <strong>🥤 50嵐限定：</strong> 單價超過 <strong>$35</strong>，加料 <strong>$0 免費</strong>！
         </div>
 
@@ -48,30 +74,8 @@
             </div>
 
             <div class="row">
-                <div class="col-6">
-                    <label class="form-label">冰塊</label>
-                    <select id="iceSelect" class="form-select" required>
-                        <option value="正常冰">正常冰</option>
-                        <option value="少冰">少冰</option>
-                        <option value="微冰">微冰</option>
-                        <option value="去冰">去冰</option>
-                        <option value="完全去冰">完全去冰</option>
-                        <option value="常溫">常溫</option>
-                        <option value="熱">熱</option>
-                    </select>
-                </div>
-                <div class="col-6">
-                    <label class="form-label">甜度</label>
-                    <select id="sugarSelect" class="form-select" required>
-                        <option value="正常甜">正常甜</option>
-                        <option value="少糖(7分)">少糖(7分)</option>
-                        <option value="半糖(5分)">半糖(5分)</option>
-                        <option value="微糖(3分)">微糖(3分)</option>
-                        <option value="二分糖">二分糖</option>
-                        <option value="一分糖">一分糖</option>
-                        <option value="無糖">無糖</option>
-                    </select>
-                </div>
+                <div class="col-6"><label class="form-label">冰塊</label><select id="iceSelect" class="form-select" required><option value="正常冰">正常冰</option><option value="少冰">少冰</option><option value="微冰">微冰</option><option value="去冰">去冰</option><option value="完全去冰">完全去冰</option><option value="常溫">常溫</option><option value="熱">熱</option></select></div>
+                <div class="col-6"><label class="form-label">甜度</label><select id="sugarSelect" class="form-select" required><option value="正常甜">正常甜</option><option value="少糖(7分)">少糖(7分)</option><option value="半糖(5分)">半糖(5分)</option><option value="微糖(3分)">微糖(3分)</option><option value="二分糖">二分糖</option><option value="一分糖">一分糖</option><option value="無糖">無糖</option></select></div>
             </div>
 
             <div class="mb-3 mt-3">
@@ -87,7 +91,7 @@
 
             <div class="mb-3">
                 <label class="form-label">備註</label>
-                <input type="text" id="note" class="form-control" placeholder="備註或是悄悄話...">
+                <input type="text" id="note" class="form-control" placeholder="有什麼想交代的嗎？">
             </div>
 
             <div class="mb-3 form-check">
@@ -108,13 +112,13 @@
 
     <div id="closedSection" class="order-card text-center py-5" style="display:none;">
         <h2 style="color: var(--main-blue); font-weight: bold;">🛑 休息中</h2>
-        <p class="text-secondary mt-3">目前非訂餐時間，請洽 Dimlos！🥤</p>
+        <p class="text-secondary mt-3">目前非點餐時間，請洽 Dimlos！🥤</p>
     </div>
 </div>
 
 <script>
     // --- ⚠️ 重要：請替換成你的 GAS 網址 ⚠️ ---
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyGTYv98DOd9mxMm72pDQF08Eism1jyVOd2k4DK_onA1WZtqEn2wZEGJF9bUTjoWQHx/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/你的GAS網址/exec"; 
     
     let menuStore = [], extraStore = [], vvipList = [], currentBasePrice = 0;
 
@@ -123,18 +127,16 @@
             document.getElementById('loading').style.display = 'none';
             if (data.status !== "開啟") { document.getElementById('closedSection').style.display = 'block'; return; }
             document.getElementById('formSection').style.display = 'block';
-            document.getElementById('resTitle').innerText = "今日店家：" + data.restaurant;
+            document.getElementById('resTitle').innerText = "今日店家：" + (data.restaurant || "點餐伺服器");
             
             menuStore = data.menu;
             extraStore = data.extras;
-            vvipList = data.vvip; // 從 GAS 獲取 VVIP 名單
+            vvipList = data.vvip;
 
-            // 填充飲品
             const menuSel = document.getElementById('menuSelect');
             menuSel.add(new Option("-- 請選擇飲品 --", ""));
             data.menu.forEach(row => { if(row[0]) menuSel.add(new Option(`${row[0]} ($${row[1]})`, row[0])); });
 
-            // 填充加料
             const extraSel = document.getElementById('extraSelect');
             data.extras.forEach(row => { 
                 let opt = new Option(`${row[0]} (+$${row[1]})`, row[0]);
@@ -144,23 +146,24 @@
         });
     };
 
-    // VVIP 名稱監聽邏輯
+    // VVIP 名稱監聽邏輯（含金光動畫切換）
     document.getElementById('userName').addEventListener('input', function() {
         const label = document.getElementById('paidLabel');
         const check = document.getElementById('paidCheck');
-        const card = document.querySelector('.order-card');
+        const card = document.getElementById('formSection'); // 抓取卡片元素
         const isVVIP = vvipList.includes(this.value.trim());
 
         if (isVVIP) {
-            label.innerHTML = "✨ <span class='vvip-text'>飲料要錢誰敢喝阿 (老大請客！)</span>";
+            // 切換為白嫖模式文字與金光效果
+            label.innerHTML = "✨ <span class='vvip-text'>恭喜解鎖『白嫖模式』，僅限本日 VVIP 專用。</span>";
             check.checked = true;
             check.disabled = true;
-            card.style.borderColor = "#d63384";
+            card.classList.add('vvip-active'); // 開啟金光動畫
             document.getElementById('paymentSection').style.display = 'none';
         } else {
             label.innerHTML = "我已現場繳費";
             check.disabled = false;
-            card.style.borderColor = "#005a9c";
+            card.classList.remove('vvip-active'); // 關閉金光動畫
             updateUI();
         }
     });
@@ -168,25 +171,19 @@
     function updateUI() {
         const selectedItem = menuStore.find(r => r[0] === document.getElementById('menuSelect').value);
         currentBasePrice = selectedItem ? selectedItem[1] : 0;
-        
         let qty = parseInt(document.getElementById('qtyInput').value) || 1;
         let extraOpt = document.getElementById('extraSelect').selectedOptions[0];
         let extraPrice = extraOpt ? parseFloat(extraOpt.dataset.price) : 0;
-        
         let isFree = currentBasePrice > 35 && extraPrice > 0;
         let finalExtraPrice = isFree ? 0 : extraPrice;
         let total = (currentBasePrice + finalExtraPrice) * qty;
 
-        let detailText = `單價 $${currentBasePrice}`;
-        if (extraPrice > 0) {
-            detailText += ` + 加料 $${finalExtraPrice} ${isFree ? '<span class="text-success small">(已折抵)</span>' : ''}`;
-        }
-        
         document.getElementById('priceDisplay').innerHTML = currentBasePrice > 0 ? 
-            `${detailText} x ${qty} = 總計 <span class="price-tag">$${total}</span>` : "";
+            `總計 <span class="price-tag">$${total}</span>` : "";
         
         let received = parseFloat(document.getElementById('receivedAmt').value) || 0;
-        document.getElementById('changeAmt').innerText = `$${received - total}`;
+        let change = received - total;
+        document.getElementById('changeAmt').innerText = change >= 0 ? `$${change}` : "金額不足";
     }
 
     document.getElementById('menuSelect').onchange = updateUI;
@@ -200,7 +197,7 @@
     document.getElementById('orderForm').onsubmit = function(e) {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
-        btn.disabled = true; btn.innerText = "正在送出訂單...";
+        btn.disabled = true; btn.innerText = "傳送訂單中...";
         
         const extraOpt = document.getElementById('extraSelect').selectedOptions[0];
 
@@ -224,9 +221,10 @@
             this.reset(); 
             btn.disabled = false; btn.innerText = "確認送出訂單";
             document.getElementById('paymentSection').style.display = 'none';
-            document.getElementById('priceDisplay').innerText = "";
+            document.getElementById('formSection').classList.remove('vvip-active');
             document.getElementById('paidLabel').innerHTML = "我已現場繳費";
             document.getElementById('paidCheck').disabled = false;
+            document.getElementById('priceDisplay').innerText = "";
             setTimeout(() => { document.getElementById('msg').innerText = ""; }, 5000);
         });
     };
