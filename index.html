@@ -7,17 +7,31 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root { --main-blue: #005a9c; --bg-color: #f0f4f8; --vvip-gold: #ffd700; --vvip-pink: #d63384; }
-        body { background-color: var(--bg-color); padding: 15px; font-family: "Microsoft JhengHei", sans-serif; font-size: 16px; }
+        body { background-color: var(--bg-color); padding: 15px; font-family: "Microsoft JhengHei", sans-serif; font-size: 16px; position: relative; }
         
         .order-card { 
-            background: white; 
-            border-radius: 20px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
-            padding: 25px; 
-            max-width: 500px; 
-            margin: auto; 
-            border-top: 10px solid var(--main-blue); 
-            transition: all 0.5s ease;
+            background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            padding: 25px; max-width: 500px; margin: auto; border-top: 10px solid var(--main-blue); 
+            transition: all 0.5s ease; position: relative; z-index: 10;
+        }
+
+        /* ⚡ 閃電特效疊層 ⚡ */
+        #flash-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: white; opacity: 0; pointer-events: none; z-index: 9999;
+        }
+
+        /* 閃電動畫：快速兩次閃擊 */
+        .lightning-effect {
+            animation: lightning-strike 0.4s ease-out;
+        }
+
+        @keyframes lightning-strike {
+            0% { opacity: 0; }
+            10% { opacity: 0.8; background-color: #fffce0; }
+            20% { opacity: 0.2; }
+            30% { opacity: 0.9; background-color: white; }
+            100% { opacity: 0; }
         }
 
         /* VVIP 動畫 */
@@ -28,37 +42,21 @@
         }
         .vvip-active { animation: goldGlow 2s infinite ease-in-out; }
 
-        /* ✨ 隨機按鈕優化 ✨ */
-        .btn-random { 
-            background-color: #e7f1ff; 
-            border: 1px dashed var(--main-blue); 
-            color: var(--main-blue); 
-            width: 100%; 
-            border-radius: 12px; 
-            font-weight: bold; 
-            padding: 8px; 
-            margin-top: 10px;
-            transition: 0.3s;
-            font-size: 0.95rem;
-        }
+        .btn-random { background-color: #e7f1ff; border: 1px dashed var(--main-blue); color: var(--main-blue); width: 100%; border-radius: 12px; font-weight: bold; padding: 8px; margin-top: 10px; transition: 0.3s; font-size: 0.95rem; }
         .btn-random:hover { background-color: var(--main-blue); color: white; border-style: solid; }
-
         .btn-submit { background-color: var(--main-blue); color: white; width: 100%; border-radius: 30px; padding: 12px; font-weight: bold; border: none; margin-top: 25px; transition: 0.3s; }
-        .btn-submit:hover { background-color: #004477; transform: translateY(-2px); }
         .btn-cancel { background-color: transparent; color: #666; width: 100%; border-radius: 30px; padding: 8px; font-size: 0.9rem; border: 1px solid #ccc; margin-top: 12px; }
-
         #paymentSection { background-color: #f0f7ff; border-left: 5px solid var(--main-blue); padding: 15px; border-radius: 8px; display: none; margin-top: 15px; }
         .price-tag { color: var(--main-blue); font-weight: 900; font-size: 1.5rem; }
         .promo-badge { background-color: #fff9db; border: 1px dashed #fab005; padding: 10px; border-radius: 10px; font-size: 0.85rem; color: #856404; margin-bottom: 20px; text-align: center; }
-        
         .vvip-text { color: var(--vvip-pink); font-weight: 900; animation: heartBeat 1.5s infinite; display: inline-block; }
         @keyframes heartBeat { 0% {transform: scale(1);} 50% {transform: scale(1.05);} 100% {transform: scale(1);} }
-        
         .form-label { font-weight: bold; color: #444; margin-top: 10px; display: block; }
-        .form-select, .form-control { border-radius: 10px; padding: 10px; }
     </style>
 </head>
 <body>
+
+<div id="flash-overlay"></div>
 
 <div class="container">
     <div id="loading" class="text-center py-5">
@@ -70,9 +68,7 @@
         <h3 class="text-center mb-1" id="resTitle" style="color: var(--main-blue); font-weight: 900;">今日店家</h3>
         <p class="text-center text-secondary small mb-3">造型飲料點餐系統</p>
 
-        <div class="promo-badge">
-            <strong>🥤 50嵐限定：</strong> 單價超過 <strong>$35</strong>，加料 <strong>$0 免費</strong>！
-        </div>
+        <div class="promo-badge"><strong>🥤 50嵐限定：</strong> 單價超過 <strong>$35</strong>，加料 <strong>$0 免費</strong>！</div>
 
         <form id="orderForm">
             <div class="mb-3">
@@ -83,32 +79,15 @@
             <div class="mb-4">
                 <label class="form-label">選擇飲品</label>
                 <select id="menuSelect" class="form-select" required></select>
-                <button class="btn btn-random" type="button" id="randomBtn">🎲 今天想被雷 (隨機挑選)</button>
+                <button class="btn btn-random" type="button" id="randomBtn">🎲 今天想被雷 (命運選單)</button>
             </div>
 
             <div class="row g-2">
-                <div class="col-6">
-                    <label class="form-label">冰塊</label>
-                    <select id="iceSelect" class="form-select" required>
-                        <option value="正常冰">正常冰</option><option value="少冰">少冰</option>
-                        <option value="微冰">微冰</option><option value="去冰">去冰</option>
-                        <option value="完全去冰">完全去冰</option><option value="常溫">常溫</option><option value="熱">熱</option>
-                    </select>
-                </div>
-                <div class="col-6">
-                    <label class="form-label">甜度</label>
-                    <select id="sugarSelect" class="form-select" required>
-                        <option value="正常甜">正常甜</option><option value="少糖(7分)">少糖(7分)</option>
-                        <option value="半糖(5分)">半糖(5分)</option><option value="微糖(3分)">微糖(3分)</option>
-                        <option value="一分糖">一分糖</option><option value="無糖">無糖</option>
-                    </select>
-                </div>
+                <div class="col-6"><label class="form-label">冰塊</label><select id="iceSelect" class="form-select" required><option value="正常冰">正常冰</option><option value="少冰">少冰</option><option value="微冰">微冰</option><option value="去冰">去冰</option><option value="完全去冰">完全去冰</option><option value="常溫">常溫</option><option value="熱">熱</option></select></div>
+                <div class="col-6"><label class="form-label">甜度</label><select id="sugarSelect" class="form-select" required><option value="正常甜">正常甜</option><option value="少糖(7分)">少糖(7分)</option><option value="半糖(5分)">半糖(5分)</option><option value="微糖(3分)">微糖(3分)</option><option value="一分糖">一分糖</option><option value="無糖">無糖</option></select></div>
             </div>
 
-            <div class="mb-3 mt-3">
-                <label class="form-label">加點配料</label>
-                <select id="extraSelect" class="form-select"></select>
-            </div>
+            <div class="mb-3 mt-3"><label class="form-label">加點配料</label><select id="extraSelect" class="form-select"></select></div>
 
             <div class="mb-3">
                 <label class="form-label">數量</label>
@@ -116,19 +95,14 @@
                 <div id="priceDisplay" class="mt-2 text-end"></div>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">備註</label>
-                <input type="text" id="note" class="form-control" placeholder="有什麼想交代的嗎？">
-            </div>
+            <div class="mb-3"><label class="form-label">備註</label><input type="text" id="note" class="form-control" placeholder="備註..."></div>
 
             <div class="mb-3 form-check">
-                <input type="checkbox" class="form-check-input" id="paidCheck">
-                <label class="form-check-label fw-bold" for="paidCheck" id="paidLabel" style="color: var(--main-blue);"> 我已現場繳費 </label>
+                <input type="checkbox" class="form-check-input" id="paidCheck"><label class="form-check-label fw-bold" for="paidCheck" id="paidLabel" style="color: var(--main-blue);"> 我已現場繳費 </label>
             </div>
 
             <div id="paymentSection">
-                <label class="form-label small">收取金額</label>
-                <input type="number" id="receivedAmt" class="form-control mb-2" placeholder="請輸入面額">
+                <label class="form-label small">收取金額</label><input type="number" id="receivedAmt" class="form-control mb-2" placeholder="請輸入面額">
                 <div class="fw-bold text-end">找零：<span id="changeAmt" class="text-danger">$0</span></div>
             </div>
 
@@ -163,18 +137,28 @@
         });
     };
 
-    // 隨機按鈕邏輯
+    // --- ⚡ 驚喜隨機鈕 (含閃電效果) ⚡ ---
     document.getElementById('randomBtn').onclick = function() {
         if (menuStore.length === 0) return;
+
+        // 1. 觸發閃電視覺
+        const overlay = document.getElementById('flash-overlay');
+        overlay.classList.add('lightning-effect');
+        setTimeout(() => overlay.classList.remove('lightning-effect'), 400);
+
+        // 2. 觸發震動 (僅手機端支援)
+        if (navigator.vibrate) navigator.vibrate([50, 30, 100]);
+
+        // 3. 隨機邏輯
         const randMenu = Math.floor(Math.random() * menuStore.length);
         document.getElementById('menuSelect').value = menuStore[randMenu][0];
         document.getElementById('iceSelect').selectedIndex = Math.floor(Math.random() * 7);
         document.getElementById('sugarSelect').selectedIndex = Math.floor(Math.random() * 6);
         updateUI();
+
         const msg = document.getElementById('msg');
         msg.className = "text-center mt-3 fw-bold text-primary";
-        msg.innerText = "⚡ 命運降臨！請確認隨機組合... ⚡";
-        this.innerText = "⚡ 重新挑戰 🎲";
+        msg.innerText = "⚡ 轟隆！命運之雷已擊中選單... ⚡";
         setTimeout(() => { if(msg.innerText.includes("命運")) msg.innerText = ""; }, 3000);
     };
 
@@ -218,12 +202,11 @@
         const btn = document.getElementById('submitBtn');
         const card = document.getElementById('formSection');
         btn.disabled = true; btn.innerText = "傳送中...";
-        const extraOpt = document.getElementById('extraSelect').selectedOptions[0];
         const payload = {
             userName: document.getElementById('userName').value,
             item: document.getElementById('menuSelect').value, ice: document.getElementById('iceSelect').value,
             sugar: document.getElementById('sugarSelect').value, extraItem: document.getElementById('extraSelect').value,
-            price: currentBasePrice, extraPrice: extraOpt ? parseFloat(extraOpt.dataset.price) : 0,
+            price: currentBasePrice, extraPrice: document.getElementById('extraSelect').selectedOptions[0] ? parseFloat(document.getElementById('extraSelect').selectedOptions[0].dataset.price) : 0,
             quantity: document.getElementById('qtyInput').value, note: document.getElementById('note').value,
             hasPaid: document.getElementById('paidCheck').checked, receivedAmount: document.getElementById('receivedAmt').value
         };
@@ -237,7 +220,6 @@
             document.getElementById('paidCheck').disabled = false;
             document.getElementById('paymentSection').style.display = 'none';
             document.getElementById('priceDisplay').innerText = "";
-            document.getElementById('randomBtn').innerText = "🎲 今天想被雷 (隨機挑選)";
             setTimeout(() => { document.getElementById('msg').innerText = ""; }, 5000);
         });
     };
@@ -248,8 +230,4 @@
         if (!confirm("確定要撤回 " + name + " 的訂單？")) return;
         const btn = this; btn.disabled = true; btn.innerText = "撤回中...";
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "delete", userName: name }) })
-        .then(res => res.json()).then(res => { alert(res.result); btn.disabled = false; btn.innerText = "🔙 撤回我的最後一筆訂單"; });
-    };
-</script>
-</body>
-</html>
+        .then(res => res.json()).then(res => { alert(
