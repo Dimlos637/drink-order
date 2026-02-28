@@ -8,60 +8,32 @@
     <style>
         :root { --main-blue: #005a9c; --bg-color: #f0f4f8; --vvip-gold: #ffd700; --vvip-pink: #d63384; }
         body { background-color: var(--bg-color); padding: 15px; font-family: "Microsoft JhengHei", sans-serif; }
-        
-        /* 基礎卡片樣式 */
-        .order-card { 
-            background: white; 
-            border-radius: 20px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
-            padding: 25px; 
-            max-width: 500px; 
-            margin: auto; 
-            border-top: 10px solid var(--main-blue); 
-            transition: all 0.5s ease;
-        }
-
-        /* ✨ 黃金閃光動畫 ✨ */
-        @keyframes goldGlow {
-            0% { border-color: var(--main-blue); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-            50% { border-color: var(--vvip-gold); box-shadow: 0 0 25px var(--vvip-gold); border-top-width: 20px; }
-            100% { border-color: var(--main-blue); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        }
-
-        /* VVIP 啟動類別 */
+        .order-card { background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); padding: 25px; max-width: 500px; margin: auto; border-top: 10px solid var(--main-blue); transition: all 0.5s ease; }
+        @keyframes goldGlow { 0% { border-color: var(--main-blue); } 50% { border-color: var(--vvip-gold); box-shadow: 0 0 25px var(--vvip-gold); border-top-width: 20px; } 100% { border-color: var(--main-blue); } }
         .vvip-active { animation: goldGlow 2s infinite ease-in-out; }
-
-        /* 按鈕樣式 */
         .btn-submit { background-color: var(--main-blue); color: white; width: 100%; border-radius: 30px; padding: 12px; font-weight: bold; border: none; transition: 0.3s; }
         .btn-submit:hover { background-color: #004477; transform: translateY(-2px); }
-        .btn-cancel { background-color: transparent; color: #666; width: 100%; border-radius: 30px; padding: 8px; font-size: 0.9rem; border: 1px solid #ccc; margin-top: 10px; transition: 0.3s; }
-        .btn-cancel:hover { background-color: #fff0f0; color: #d63384; border-color: #d63384; }
-
+        .btn-random { background-color: transparent; border: 2px solid var(--main-blue); color: var(--main-blue); border-radius: 30px; font-weight: bold; transition: 0.3s; padding: 5px 15px; font-size: 0.85rem; }
+        .btn-random:hover { background-color: var(--main-blue); color: white; }
+        .btn-cancel { background-color: transparent; color: #666; width: 100%; border-radius: 30px; padding: 8px; font-size: 0.9rem; border: 1px solid #ccc; margin-top: 10px; }
         #paymentSection { background-color: #f0f7ff; border-left: 5px solid var(--main-blue); padding: 15px; border-radius: 8px; display: none; margin-top: 15px; }
         .price-tag { color: var(--main-blue); font-weight: 900; font-size: 1.5rem; }
         .promo-badge { background-color: #fff9db; border: 1px dashed #fab005; padding: 10px; border-radius: 10px; font-size: 0.85rem; color: #856404; margin-bottom: 20px; text-align: center; }
-        
         .vvip-text { color: var(--vvip-pink); font-weight: 900; animation: heartBeat 1.5s infinite; display: inline-block; }
         @keyframes heartBeat { 0% {transform: scale(1);} 50% {transform: scale(1.05);} 100% {transform: scale(1);} }
-        
         .form-label { font-weight: bold; color: #444; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="loading" class="text-center py-5">
-        <div class="spinner-border text-primary"></div>
-        <p class="mt-2 text-secondary">正在連線至點餐伺服器...</p>
-    </div>
+    <div id="loading" class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2 text-secondary">正在連線至點餐伺服器...</p></div>
 
     <div id="formSection" class="order-card" style="display:none;">
         <h3 class="text-center mb-1" id="resTitle" style="color: var(--main-blue); font-weight: 900;">今日店家</h3>
         <p class="text-center text-secondary small mb-3">造型飲料點餐系統</p>
 
-        <div class="promo-badge">
-            <strong>🥤 50嵐限定：</strong> 單價超過 <strong>$35</strong>，加料 <strong>$0 免費</strong>！
-        </div>
+        <div class="promo-badge"><strong>🥤 50嵐限定：</strong> 單價超過 <strong>$35</strong>，加料 <strong>$0 免費</strong>！</div>
 
         <form id="orderForm">
             <div class="mb-3">
@@ -71,28 +43,18 @@
 
             <div class="mb-3">
                 <label class="form-label">選擇飲品</label>
-                <select id="menuSelect" class="form-select" required></select>
+                <div class="input-group">
+                    <select id="menuSelect" class="form-select" required></select>
+                    <button class="btn btn-random" type="button" id="randomBtn">今天想被雷 🎲</button>
+                </div>
             </div>
 
             <div class="row">
                 <div class="col-6"><label class="form-label">冰塊</label><select id="iceSelect" class="form-select" required><option value="正常冰">正常冰</option><option value="少冰">少冰</option><option value="微冰">微冰</option><option value="去冰">去冰</option><option value="完全去冰">完全去冰</option><option value="常溫">常溫</option><option value="熱">熱</option></select></div>
-                <div class="col-6">
-                    <label class="form-label">甜度</label>
-                    <select id="sugarSelect" class="form-select" required>
-                        <option value="正常甜">正常甜</option>
-                        <option value="少糖(7分)">少糖(7分)</option>
-                        <option value="半糖(5分)">半糖(5分)</option>
-                        <option value="微糖(3分)">微糖(3分)</option>
-                        <option value="一分糖">一分糖</option>
-                        <option value="無糖">無糖</option>
-                    </select>
-                </div>
+                <div class="col-6"><label class="form-label">甜度</label><select id="sugarSelect" class="form-select" required><option value="正常甜">正常甜</option><option value="少糖(7分)">少糖(7分)</option><option value="半糖(5分)">半糖(5分)</option><option value="微糖(3分)">微糖(3分)</option><option value="一分糖">一分糖</option><option value="無糖">無糖</option></select></div>
             </div>
 
-            <div class="mb-3 mt-3">
-                <label class="form-label">加點配料</label>
-                <select id="extraSelect" class="form-select"></select>
-            </div>
+            <div class="mb-3 mt-3"><label class="form-label">加點配料</label><select id="extraSelect" class="form-select"></select></div>
 
             <div class="mb-3">
                 <label class="form-label">數量</label>
@@ -100,10 +62,7 @@
                 <div id="priceDisplay" class="mt-2 text-end"></div>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">備註</label>
-                <input type="text" id="note" class="form-control" placeholder="有什麼想交代的嗎？">
-            </div>
+            <div class="mb-3"><label class="form-label">備註</label><input type="text" id="note" class="form-control" placeholder="備註..."></div>
 
             <div class="mb-3 form-check">
                 <input type="checkbox" class="form-check-input" id="paidCheck">
@@ -119,7 +78,7 @@
             <button type="submit" id="submitBtn" class="btn btn-submit mt-3">確認送出訂單</button>
             <button type="button" id="deleteBtn" class="btn btn-cancel">🔙 撤回我的最後一筆訂單</button>
         </form>
-        <div id="msg" class="text-center mt-3 fw-bold text-success"></div>
+        <div id="msg" class="text-center mt-3 fw-bold"></div>
     </div>
 
     <div id="closedSection" class="order-card text-center py-5" style="display:none;">
@@ -129,9 +88,7 @@
 </div>
 
 <script>
-    // --- ⚠️ 已為您自動填入 GAS 網址 ⚠️ ---
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyGTYv98DOd9mxMm72pDQF08Eism1jyVOd2k4DK_onA1WZtqEn2wZEGJF9bUTjoWQHx/exec"; 
-    
     let menuStore = [], extraStore = [], vvipList = [], currentBasePrice = 0;
 
     window.onload = () => {
@@ -140,41 +97,54 @@
             if (data.status !== "開啟") { document.getElementById('closedSection').style.display = 'block'; return; }
             document.getElementById('formSection').style.display = 'block';
             document.getElementById('resTitle').innerText = "今日店家：" + (data.restaurant || "點餐伺服器");
-            
-            menuStore = data.menu;
-            extraStore = data.extras;
-            vvipList = data.vvip;
-
+            menuStore = data.menu; extraStore = data.extras; vvipList = data.vvip;
             const menuSel = document.getElementById('menuSelect');
             menuSel.add(new Option("-- 請選擇飲品 --", ""));
             data.menu.forEach(row => { if(row[0]) menuSel.add(new Option(`${row[0]} ($${row[1]})`, row[0])); });
-
             const extraSel = document.getElementById('extraSelect');
-            data.extras.forEach(row => { 
-                let opt = new Option(`${row[0]} (+$${row[1]})`, row[0]);
-                opt.dataset.price = row[1];
-                extraSel.add(opt); 
-            });
+            data.extras.forEach(row => { let opt = new Option(`${row[0]} (+$${row[1]})`, row[0]); opt.dataset.price = row[1]; extraSel.add(opt); });
         });
     };
 
-    // VVIP 監聽邏輯
+    // --- 🎲 驚喜隨機鈕邏輯 ---
+    document.getElementById('randomBtn').onclick = function() {
+        if (menuStore.length === 0) return;
+        
+        // 1. 隨機飲料
+        const randMenu = Math.floor(Math.random() * menuStore.length);
+        document.getElementById('menuSelect').value = menuStore[randMenu][0];
+
+        // 2. 隨機冰塊
+        const iceOptions = document.getElementById('iceSelect').options;
+        document.getElementById('iceSelect').selectedIndex = Math.floor(Math.random() * iceOptions.length);
+
+        // 3. 隨機甜度
+        const sugarOptions = document.getElementById('sugarSelect').options;
+        document.getElementById('sugarSelect').selectedIndex = Math.floor(Math.random() * sugarOptions.length);
+
+        updateUI();
+
+        // 特效與訊息
+        const msg = document.getElementById('msg');
+        msg.className = "text-center mt-3 fw-bold text-primary";
+        msg.innerText = "⚡ 命運降臨！祝你好運... ⚡";
+        
+        this.innerText = "⚡⚡⚡";
+        setTimeout(() => { this.innerText = "今天想被雷 🎲"; }, 600);
+        setTimeout(() => { if(msg.innerText.includes("命運")) msg.innerText = ""; }, 3000);
+    };
+
     document.getElementById('userName').addEventListener('input', function() {
         const label = document.getElementById('paidLabel');
         const check = document.getElementById('paidCheck');
         const card = document.getElementById('formSection');
         const isVVIP = vvipList.includes(this.value.trim());
-
         if (isVVIP) {
             label.innerHTML = "✨ <span class='vvip-text'>恭喜解鎖『白嫖模式』，僅限本日 VVIP 專用。</span>";
-            check.checked = true;
-            check.disabled = true;
-            card.classList.add('vvip-active');
+            check.checked = true; check.disabled = true; card.classList.add('vvip-active');
             document.getElementById('paymentSection').style.display = 'none';
         } else {
-            label.innerHTML = "我已現場繳費";
-            check.disabled = false;
-            card.classList.remove('vvip-active');
+            label.innerHTML = "我已現場繳費"; check.disabled = false; card.classList.remove('vvip-active');
             updateUI();
         }
     });
@@ -188,80 +158,52 @@
         let isFree = currentBasePrice > 35 && extraPrice > 0;
         let finalExtraPrice = isFree ? 0 : extraPrice;
         let total = (currentBasePrice + finalExtraPrice) * qty;
-
-        document.getElementById('priceDisplay').innerHTML = currentBasePrice > 0 ? 
-            `總計 <span class="price-tag">$${total}</span>` : "";
-        
+        document.getElementById('priceDisplay').innerHTML = currentBasePrice > 0 ? `總計 <span class="price-tag">$${total}</span>` : "";
         let received = parseFloat(document.getElementById('receivedAmt').value) || 0;
-        let change = received - total;
-        document.getElementById('changeAmt').innerText = change >= 0 ? `$${change}` : "金額不足";
+        document.getElementById('changeAmt').innerText = `$${received - total}`;
     }
 
     document.getElementById('menuSelect').onchange = updateUI;
     document.getElementById('extraSelect').onchange = updateUI;
     document.getElementById('qtyInput').oninput = updateUI;
     document.getElementById('receivedAmt').oninput = updateUI;
-    document.getElementById('paidCheck').onchange = function() {
-        document.getElementById('paymentSection').style.display = this.checked ? 'block' : 'none';
-    };
+    document.getElementById('paidCheck').onchange = function() { document.getElementById('paymentSection').style.display = this.checked ? 'block' : 'none'; };
 
-    // 送出訂單
     document.getElementById('orderForm').onsubmit = function(e) {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
         const card = document.getElementById('formSection');
-        btn.disabled = true; btn.innerText = "傳送訂單中...";
-        
+        btn.disabled = true; btn.innerText = "傳送中...";
         const extraOpt = document.getElementById('extraSelect').selectedOptions[0];
-
         const payload = {
             userName: document.getElementById('userName').value,
-            item: document.getElementById('menuSelect').value,
-            ice: document.getElementById('iceSelect').value,
-            sugar: document.getElementById('sugarSelect').value,
-            extraItem: document.getElementById('extraSelect').value,
-            price: currentBasePrice,
-            extraPrice: extraOpt ? parseFloat(extraOpt.dataset.price) : 0,
-            quantity: document.getElementById('qtyInput').value,
-            note: document.getElementById('note').value,
-            hasPaid: document.getElementById('paidCheck').checked,
-            receivedAmount: document.getElementById('receivedAmt').value
+            item: document.getElementById('menuSelect').value, ice: document.getElementById('iceSelect').value,
+            sugar: document.getElementById('sugarSelect').value, extraItem: document.getElementById('extraSelect').value,
+            price: currentBasePrice, extraPrice: extraOpt ? parseFloat(extraOpt.dataset.price) : 0,
+            quantity: document.getElementById('qtyInput').value, note: document.getElementById('note').value,
+            hasPaid: document.getElementById('paidCheck').checked, receivedAmount: document.getElementById('receivedAmt').value
         };
-
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
         .then(res => res.json()).then(res => {
+            document.getElementById('msg').className = "text-center mt-3 fw-bold text-success";
             document.getElementById('msg').innerText = res.result;
-            
-            // --- 核心重置邏輯 ---
-            this.reset(); 
-            card.classList.remove('vvip-active'); // 提交成功立刻移除金光
+            this.reset(); btn.disabled = false; btn.innerText = "確認送出訂單";
+            card.classList.remove('vvip-active');
             document.getElementById('paidLabel').innerHTML = "我已現場繳費";
             document.getElementById('paidCheck').disabled = false;
             document.getElementById('paymentSection').style.display = 'none';
             document.getElementById('priceDisplay').innerText = "";
-            
-            btn.disabled = false; btn.innerText = "確認送出訂單";
             setTimeout(() => { document.getElementById('msg').innerText = ""; }, 5000);
         });
     };
 
-    // --- 撤回訂單邏輯 ---
     document.getElementById('deleteBtn').onclick = function() {
         const name = document.getElementById('userName').value.trim();
-        if (!name) { alert("請先輸入您的姓名，以便系統查找您的訂單。"); return; }
-        if (!confirm("確定要撤回您（" + name + "）最後一筆訂單嗎？")) return;
-        
-        const btn = this;
-        btn.disabled = true; btn.innerText = "正在撤回...";
-        
+        if (!name) { alert("請先輸入您的姓名。"); return; }
+        if (!confirm("確定要撤回 " + name + " 的訂單？")) return;
+        const btn = this; btn.disabled = true; btn.innerText = "撤回中...";
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "delete", userName: name }) })
-        .then(res => res.json()).then(res => {
-            alert(res.result);
-            btn.disabled = false; btn.innerText = "🔙 撤回我的最後一筆訂單";
-        }).catch(err => {
-            alert("撤回失敗，請稍後再試。");
-            btn.disabled = false; btn.innerText = "🔙 撤回我的最後一筆訂單";
-        });
+        .then(res => res.json()).then(res => { alert(res.result); btn.disabled = false; btn.innerText = "🔙 撤回我的最後一筆訂單"; });
     };
 </script>
 </body>
