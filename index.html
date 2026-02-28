@@ -218,3 +218,51 @@
             userName: document.getElementById('userName').value,
             item: document.getElementById('menuSelect').value,
             ice: document.getElementById('iceSelect').value,
+            sugar: document.getElementById('sugarSelect').value,
+            extraItem: document.getElementById('extraSelect').value,
+            price: currentBasePrice,
+            extraPrice: extraOpt ? parseFloat(extraOpt.dataset.price) : 0,
+            quantity: document.getElementById('qtyInput').value,
+            note: document.getElementById('note').value,
+            hasPaid: document.getElementById('paidCheck').checked,
+            receivedAmount: document.getElementById('receivedAmt').value
+        };
+
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
+        .then(res => res.json()).then(res => {
+            document.getElementById('msg').innerText = res.result;
+            
+            // --- 核心重置邏輯 ---
+            this.reset(); 
+            card.classList.remove('vvip-active'); // 提交成功立刻移除金光
+            document.getElementById('paidLabel').innerHTML = "我已現場繳費";
+            document.getElementById('paidCheck').disabled = false;
+            document.getElementById('paymentSection').style.display = 'none';
+            document.getElementById('priceDisplay').innerText = "";
+            
+            btn.disabled = false; btn.innerText = "確認送出訂單";
+            setTimeout(() => { document.getElementById('msg').innerText = ""; }, 5000);
+        });
+    };
+
+    // --- 撤回訂單邏輯 ---
+    document.getElementById('deleteBtn').onclick = function() {
+        const name = document.getElementById('userName').value.trim();
+        if (!name) { alert("請先輸入您的姓名，以便系統查找您的訂單。"); return; }
+        if (!confirm("確定要撤回您（" + name + "）最後一筆訂單嗎？")) return;
+        
+        const btn = this;
+        btn.disabled = true; btn.innerText = "正在撤回...";
+        
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "delete", userName: name }) })
+        .then(res => res.json()).then(res => {
+            alert(res.result);
+            btn.disabled = false; btn.innerText = "🔙 撤回我的最後一筆訂單";
+        }).catch(err => {
+            alert("撤回失敗，請稍後再試。");
+            btn.disabled = false; btn.innerText = "🔙 撤回我的最後一筆訂單";
+        });
+    };
+</script>
+</body>
+</html>
