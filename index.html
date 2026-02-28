@@ -15,6 +15,9 @@
             position: relative; z-index: 10; transition: all 0.5s ease;
         }
 
+        /* 🛑 關閉狀態樣式 */
+        .closed-badge { background-color: #fff5f5; border: 1px solid #ffc9c9; color: #c92a2a; padding: 20px; border-radius: 15px; margin-top: 20px; }
+
         /* ✨ VVIP 黃金閃爍動畫 ✨ */
         @keyframes goldGlow { 
             0% { border-top-color: var(--main-blue); } 
@@ -22,6 +25,8 @@
             100% { border-top-color: var(--main-blue); } 
         }
         .vvip-active { animation: goldGlow 2s infinite ease-in-out; }
+        .vvip-text { color: var(--vvip-pink); font-weight: 900; animation: heartBeat 1.5s infinite; display: inline-block; }
+        @keyframes heartBeat { 0% {transform: scale(1);} 50% {transform: scale(1.05);} 100% {transform: scale(1);} }
 
         /* ⚡ 閃電特效 ⚡ */
         #flash-overlay {
@@ -37,41 +42,8 @@
             100% { opacity: 0; visibility: hidden; }
         }
 
-        /* 🎲 隨機按鈕：淺藍底、深藍邊 🎲 */
-        .btn-random { 
-            background-color: #e7f1ff !important;
-            border: 1.5px dashed var(--main-blue) !important; 
-            color: var(--main-blue) !important; 
-            width: 100%; border-radius: 12px; font-weight: bold; 
-            padding: 10px; margin-top: 10px; transition: 0.2s;
-        }
-        .btn-random:hover { background-color: var(--main-blue) !important; color: white !important; border-style: solid !important; }
-
-        /* 🚀 確認送出按鈕：深藍底、白字 (強化版) 🚀 */
-        .btn-submit { 
-            background-color: var(--main-blue) !important; 
-            color: white !important; 
-            width: 100%; border-radius: 30px; padding: 12px; 
-            font-weight: bold; border: none !important; margin-top: 25px;
-            transition: 0.3s;
-            box-shadow: 0 4px 12px rgba(0, 90, 156, 0.2) !important;
-        }
-        .btn-submit:hover { 
-            background-color: #004477 !important; 
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(0, 90, 156, 0.3) !important;
-        }
-        .btn-submit:active {
-            transform: translateY(0);
-            background-color: #003355 !important;
-        }
-        .btn-submit:disabled {
-            background-color: #cccccc !important;
-            color: #666666 !important;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-
+        .btn-random { background-color: #e7f1ff !important; border: 1.5px dashed var(--main-blue) !important; color: var(--main-blue) !important; width: 100%; border-radius: 12px; font-weight: bold; padding: 10px; margin-top: 10px; }
+        .btn-submit { background-color: var(--main-blue) !important; color: white !important; width: 100%; border-radius: 30px; padding: 12px; font-weight: bold; border: none !important; margin-top: 25px; box-shadow: 0 4px 12px rgba(0, 90, 156, 0.2) !important; }
         .btn-cancel { background-color: transparent; color: #666; width: 100%; border-radius: 30px; padding: 8px; font-size: 0.9rem; border: 1px solid #ccc; margin-top: 12px; }
         .price-tag { color: var(--main-blue); font-weight: 900; font-size: 1.5rem; }
         .promo-badge { background-color: #fff9db; border: 1px dashed #fab005; padding: 10px; border-radius: 10px; font-size: 0.85rem; color: #856404; margin-bottom: 20px; text-align: center; }
@@ -85,57 +57,34 @@
 <div class="container">
     <div id="loading" class="text-center py-5">
         <div class="spinner-border text-primary"></div>
-        <p class="mt-2 text-secondary">正在連線至伺服器...</p>
+        <p class="mt-2 text-secondary">正在同步系統狀態...</p>
     </div>
 
     <div id="formSection" class="order-card" style="display:none;">
         <h3 class="text-center mb-1" id="resTitle" style="color: var(--main-blue); font-weight: 900;">今日店家</h3>
         <p class="text-center text-secondary small mb-3">造型飲料點餐系統</p>
-
         <div class="promo-badge"><strong>🥤 50嵐限定：</strong> 單價超過 <strong>$35</strong>，加料 <strong>$0 免費</strong>！</div>
-
         <form id="orderForm">
-            <div class="mb-3">
-                <label class="form-label">您的姓名</label>
-                <input type="text" id="userName" class="form-control" placeholder="請輸入姓名" required>
-            </div>
-
-            <div class="mb-4">
-                <label class="form-label">選擇飲品</label>
-                <select id="menuSelect" class="form-select" required></select>
-                <button class="btn btn-random" type="button" id="randomBtn">🎲 今天想被雷 (命運選單)</button>
-            </div>
-
-            <div class="row g-2">
-                <div class="col-6"><label class="form-label">冰塊</label><select id="iceSelect" class="form-select" required><option value="正常冰">正常冰</option><option value="少冰">少冰</option><option value="微冰">微冰</option><option value="去冰">去冰</option><option value="完全去冰">完全去冰</option><option value="常溫">常溫</option><option value="熱">熱</option></select></div>
-                <div class="col-6"><label class="form-label">甜度</label><select id="sugarSelect" class="form-select" required><option value="正常甜">正常甜</option><option value="少糖(7分)">少糖(7分)</option><option value="半糖(5分)">半糖(5分)</option><option value="微糖(3分)">微糖(3分)</option><option value="一分糖">一分糖</option><option value="無糖">無糖</option></select></div>
-            </div>
-
+            <div class="mb-3"><label class="form-label">您的姓名</label><input type="text" id="userName" class="form-control" placeholder="請輸入姓名" required></div>
+            <div class="mb-4"><label class="form-label">選擇飲品</label><select id="menuSelect" class="form-select" required></select><button class="btn btn-random" type="button" id="randomBtn">🎲 今天想被雷 (命運選單)</button></div>
+            <div class="row g-2"><div class="col-6"><label class="form-label">冰塊</label><select id="iceSelect" class="form-select" required><option value="正常冰">正常冰</option><option value="少冰">少冰</option><option value="微冰">微冰</option><option value="去冰">去冰</option><option value="完全去冰">完全去冰</option><option value="常溫">常溫</option><option value="熱">熱</option></select></div><div class="col-6"><label class="form-label">甜度</label><select id="sugarSelect" class="form-select" required><option value="正常甜">正常甜</option><option value="少糖(7分)">少糖(7分)</option><option value="半糖(5分)">半糖(5分)</option><option value="微糖(3分)">微糖(3分)</option><option value="一分糖">一分糖</option><option value="無糖">無糖</option></select></div></div>
             <div class="mb-3 mt-3"><label class="form-label">加點配料</label><select id="extraSelect" class="form-select"></select></div>
-
-            <div class="mb-3">
-                <label class="form-label">數量</label>
-                <input type="number" id="qtyInput" class="form-control" value="1" min="1" required>
-                <div id="priceDisplay" class="mt-2 text-end"></div>
-            </div>
-
+            <div class="mb-3"><label class="form-label">數量</label><input type="number" id="qtyInput" class="form-control" value="1" min="1" required><div id="priceDisplay" class="mt-2 text-end"></div></div>
             <div class="mb-3"><label class="form-label">備註</label><input type="text" id="note" class="form-control" placeholder="備註..."></div>
-
-            <div class="mb-3 form-check">
-                <input type="checkbox" class="form-check-input" id="paidCheck">
-                <label class="form-check-label fw-bold" for="paidCheck" id="paidLabel" style="color: var(--main-blue);"> 我已現場繳費 </label>
-            </div>
-
-            <div id="paymentSection">
-                <label class="form-label small">收取金額</label>
-                <input type="number" id="receivedAmt" class="form-control mb-2" placeholder="面額">
-                <div class="fw-bold text-end">找零：<span id="changeAmt" class="text-danger">$0</span></div>
-            </div>
-
+            <div class="mb-3 form-check"><input type="checkbox" class="form-check-input" id="paidCheck"><label class="form-check-label fw-bold" for="paidCheck" id="paidLabel" style="color: var(--main-blue);"> 我已現場繳費 </label></div>
+            <div id="paymentSection"><label class="form-label small">收取金額</label><input type="number" id="receivedAmt" class="form-control mb-2" placeholder="面額"><div class="fw-bold text-end">找零：<span id="changeAmt" class="text-danger">$0</span></div></div>
             <button type="submit" id="submitBtn" class="btn btn-submit">確認送出訂單</button>
             <button type="button" id="deleteBtn" class="btn btn-cancel">🔙 撤回我的最後一筆訂單</button>
         </form>
         <div id="msg" class="text-center mt-3 fw-bold"></div>
+    </div>
+
+    <div id="closedSection" class="order-card text-center py-5" style="display:none;">
+        <h2 style="color: var(--main-blue); font-weight: bold;">🛑 今日點餐已結束</h2>
+        <div class="closed-badge">
+            <p class="mb-0 fw-bold">目前系統狀態：休息中</p>
+            <p class="mb-0 small">如有急單請洽詢 Dimlos！🥤</p>
+        </div>
     </div>
 </div>
 
@@ -146,6 +95,14 @@
     window.onload = () => {
         fetch(GAS_URL).then(res => res.json()).then(data => {
             document.getElementById('loading').style.display = 'none';
+            
+            // ✨ [核心修正] 檢查狀態邏輯 ✨
+            if (data.status !== "開啟") {
+                document.getElementById('closedSection').style.display = 'block';
+                return; // 直接中斷，不顯示表單
+            }
+
+            // 狀態為「開啟」才顯示表單
             document.getElementById('formSection').style.display = 'block';
             document.getElementById('resTitle').innerText = "今日店家：" + (data.restaurant || "點餐系統");
             menuStore = data.menu; extraStore = data.extras; vvipList = data.vvip;
@@ -154,6 +111,8 @@
             data.menu.forEach(row => { if(row[0]) menuSel.add(new Option(`${row[0]} ($${row[1]})`, row[0])); });
             const extraSel = document.getElementById('extraSelect');
             data.extras.forEach(row => { let opt = new Option(`${row[0]} (+$${row[1]})`, row[0]); opt.dataset.price = row[1]; extraSel.add(opt); });
+        }).catch(err => {
+            document.getElementById('loading').innerHTML = "伺服器連線異常，請重新整理。";
         });
     };
 
@@ -179,7 +138,6 @@
         const overlay = document.getElementById('flash-overlay');
         overlay.classList.add('lightning-effect');
         setTimeout(() => overlay.classList.remove('lightning-effect'), 400);
-        if (navigator.vibrate) navigator.vibrate([50, 30, 100]);
         const randMenu = Math.floor(Math.random() * menuStore.length);
         document.getElementById('menuSelect').value = menuStore[randMenu][0];
         document.getElementById('iceSelect').selectedIndex = Math.floor(Math.random() * 7);
@@ -230,10 +188,6 @@
             document.getElementById('priceDisplay').innerText = "";
             document.getElementById('paidLabel').innerHTML = "我已現場繳費";
             document.getElementById('paidCheck').disabled = false;
-            document.getElementById('randomBtn').innerText = "🎲 今天想被雷 (命運選單)";
-        }).catch(err => {
-            alert("提交失敗，請檢查連線。");
-            btn.disabled = false; btn.innerText = "確認送出訂單";
         });
     };
 
